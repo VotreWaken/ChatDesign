@@ -4,8 +4,13 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatDesign"
+        xmlns:vm="clr-namespace:ChatDesign.View"
         mc:Ignorable="d"
         Title="MainWindow" MinWidth="500" Height="450" Width="800">
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
     <Grid>
         <Grid.Resources>
             <Storyboard x:Key="ShowLeftPanelAnimation">
@@ -75,7 +80,7 @@
             </Grid>
 
 
-            <ListBox Name="Contacts" Grid.Row="1" MouseDoubleClick="ContactItem_DoubleClick">
+            <ListBox Name="Contacts" Grid.Row="1" MouseDoubleClick="ContactItem_DoubleClick" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -124,7 +129,7 @@
                             <RowDefinition/>
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                    <Label x:Name="Username" Cursor="Hand" Grid.Column="1">Name</Label>
+                    <Label x:Name="Username" Content="{Binding Username}" Cursor="Hand" Grid.Column="1"></Label>
                         <Label Cursor="Hand" Grid.Row="2" Grid.Column="1">Activity</Label>
                     </Grid>
                     <Button Cursor="Hand" Style="{StaticResource MyButton2}" HorizontalAlignment="Center" Grid.Column="2" Width="40" Height="40">
@@ -164,7 +169,7 @@
                             <RowDefinition/>
                             <RowDefinition Height="40"/>
                         </Grid.RowDefinitions>
-                        <ListView BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding ChatMessages}" Name="ChatListBox" Background="Transparent">
+                    <ListView BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding MessagessItems}" Name="ChatListBox" Background="Transparent">
                             <ListView.ItemTemplate>
                                 
                                 <DataTemplate>
@@ -224,11 +229,11 @@
                                 <Border.Background>
                                     <SolidColorBrush Color="White"/>
                                 </Border.Background>
-                                <TextBox Margin="0,5,0,0" Width="480" TextWrapping="Wrap" BorderThickness="0" HorizontalAlignment="Center" Grid.Column ="0" Name="MessageInput" Background="Transparent">
+                            <TextBox Margin="0,5,0,0" Width="480" TextWrapping="Wrap" BorderThickness="0" HorizontalAlignment="Center" Grid.Column ="0" Name="MessageInput" Text="{Binding TextMessage}" Background="Transparent">
 
                                 </TextBox>
                             </Border>
-                            <Button Style="{StaticResource MyButton2}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
+                        <Button Click="SendMessage" Style="{StaticResource MyButton2}" IsEnabled="{Binding SendIsEnable}" Command="{Binding SendCommand}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
                                 Send
                                 <Button.Resources>
                                     <Style TargetType="{x:Type Border}">

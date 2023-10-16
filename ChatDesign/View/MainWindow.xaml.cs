@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
+using System.Net.Sockets;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +21,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ChatDesign.Model;
+using ChatDesign.Control;
+using ChatDesign.View;
+
 namespace ChatDesign
 {
     /// <summary>
@@ -29,9 +34,9 @@ namespace ChatDesign
         public MainWindow(string username, byte[] image)
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
 
 
-            DataContext = this; // Set DataContext to the MainWindow instance
             Bitmap bitmapavatar = GetImageFromByteArray(image);
             UserAvatar.ImageSource = ImageSourceFromBitmap(bitmapavatar);
             Username.Content = username;
@@ -47,10 +52,32 @@ namespace ChatDesign
             ChatMessages = new ObservableCollection<ChatItem>();
             //LoadChatMessages();
         }
-
+        private void SendMessage(object sender, RoutedEventArgs e)
+        {
+            //MainViewModel viewModel = (MainViewModel)DataContext;
+            //MainViewModel viewModel = (MainViewModel)DataContext;
+            ChatItem i = new ChatItem { Content = MessageInput.Text, IsSender = true, Sender = Username.Content.ToString() };
+            //ChatListBox.Items.Add(i);
+            ChatMessages.Add(i);
+        }
         private void ContactItem_DoubleClick(object sender, MouseButtonEventArgs e)
         {
+            // Get the selected item
+            CustomItem selectedItem = (CustomItem)Contacts.SelectedItem;
 
+            // Check if an item is selected
+            if (selectedItem != null)
+            {
+                // Access your ViewModel (replace YourViewModel with your actual ViewModel type)
+                MainViewModel viewModel = (MainViewModel)DataContext;
+                viewModel.Username = Username.Content.ToString();
+                // Invoke the ConnectCommand with the selected item as a parameter
+                if (viewModel.ConnectCommand.CanExecute(selectedItem))
+                {
+                    viewModel.ConnectCommand.Execute(selectedItem);
+                }
+            }
+            //DataContext = this;
             int chatID = ((CustomItem)Contacts.SelectedItem).Id;
 
             // Load chat messages for the selected contact
@@ -65,7 +92,7 @@ namespace ChatDesign
         }
         public MainWindow()
         {
-
+            DataContext = this; // Set DataContext to the MainWindow instance
         }
 
         [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
