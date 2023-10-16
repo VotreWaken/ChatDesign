@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\avatar.jpg" />
+    <None Remove="Assets\backgrond.png" />
+    <None Remove="Assets\Call.png" />
+    <None Remove="Assets\LeftPanel.png" />
+    <None Remove="Assets\Search.png" />
+    <None Remove="Assets\ShowMore.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EntityFramework" Version="6.4.4" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\avatar.jpg" />
+    <Resource Include="Assets\backgrond.png" />
+    <Resource Include="Assets\Call.png" />
+    <Resource Include="Assets\LeftPanel.png" />
+    <Resource Include="Assets\Search.png" />
+    <Resource Include="Assets\ShowMore.png" />
+  </ItemGroup>
+
+</Project>
