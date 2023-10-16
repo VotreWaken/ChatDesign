@@ -31,6 +31,18 @@ namespace ChatDesign
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        private void MyScrollViewer_ViewChanged(object sender,Control.MyScrollViewer e)
+        {
+            var scrollViewer = (ScrollViewer)sender;
+
+            // You can determine when to load more data based on your requirements
+            if (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
+            {
+                // Load more data here
+                //YourIncrementalLoadingCollectionInstance.LoadMoreItemsAsync(20); // Load 20 more items as an example
+            }
+        }
         public MainWindow(string username, byte[] image)
         {
             InitializeComponent();
@@ -50,7 +62,6 @@ namespace ChatDesign
             SaveOriginalContacts();
             // Initialize ChatMessages
             ChatMessages = new ObservableCollection<ChatItem>();
-            //LoadChatMessages();
         }
         private void SendMessage(object sender, RoutedEventArgs e)
         {
@@ -71,6 +82,7 @@ namespace ChatDesign
                 // Access your ViewModel (replace YourViewModel with your actual ViewModel type)
                 MainViewModel viewModel = (MainViewModel)DataContext;
                 viewModel.Username = Username.Content.ToString();
+                viewModel.LoadMessages(((CustomItem)Contacts.SelectedItem).Id);
                 // Invoke the ConnectCommand with the selected item as a parameter
                 if (viewModel.ConnectCommand.CanExecute(selectedItem))
                 {
@@ -90,6 +102,7 @@ namespace ChatDesign
                 ChatMessages.Add(message);
             }
         }
+
         public MainWindow()
         {
             DataContext = this; // Set DataContext to the MainWindow instance

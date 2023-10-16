@@ -15,6 +15,8 @@ using System.Collections.ObjectModel;
 using Data;
 using System.Data;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Controls;
+
 namespace ChatDesign.View
 {
     class MainViewModel : Notifier
@@ -87,6 +89,8 @@ namespace ChatDesign.View
             get => receiver;
         }
 
+
+
         #endregion
 
         #region Commands
@@ -134,6 +138,15 @@ namespace ChatDesign.View
 
         public ObservableCollection<string> Users { set; get; }
         public string EmailAddress { set; get; }
+        public string Online
+        {
+            set
+            {
+                Online = value;
+                Notify();
+            }
+            get => username;
+        }
         #endregion
 
         public MainViewModel()
@@ -149,8 +162,19 @@ namespace ChatDesign.View
             WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
             MessagessItems = new ObservableCollection<ChatItem>();
             InitCommands();
-
             Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
+        }
+
+        public void LoadMessages(int chatID)
+        {
+            // Load chat messages for the selected contact
+            ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
+
+            for (int i = 0; i < chatMessages.Count; i++)
+            {
+
+                MessagessItems.Add(chatMessages[i]);
+            }
         }
 
         public MainViewModel(string name)

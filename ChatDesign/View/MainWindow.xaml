@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatDesign"
         xmlns:vm="clr-namespace:ChatDesign.View"
+        xmlns:lb="clr-namespace:ChatDesign.Control"
+        xmlns:md="clr-namespace:ChatDesign.Model"
         mc:Ignorable="d"
         Title="MainWindow" MinWidth="500" Height="450" Width="800">
     <Window.DataContext>
@@ -91,6 +93,8 @@
                                 </Border.Background>
                             </Border>
                             <Label Content="{Binding Title}" />
+                            <Label Background="{Binding Online}" />
+                            
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -169,10 +173,10 @@
                             <RowDefinition/>
                             <RowDefinition Height="40"/>
                         </Grid.RowDefinitions>
-                    <ListView BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding MessagessItems}" Name="ChatListBox" Background="Transparent">
-                            <ListView.ItemTemplate>
-                                
-                                <DataTemplate>
+                    <ListView BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding MessagessItems}"
+                               lb:ListBoxBehavior.ScrollOnNewItem="True" Name="ChatListBox" Background="Transparent">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
                                     <Border Background="White" CornerRadius="20">
                                         <StackPanel>
                                             <TextBlock Margin="10,10,10,0" TextWrapping="Wrap" Text="{Binding Sender}" FontWeight="Bold" />
@@ -184,10 +188,10 @@
                             <ListView.Template>
                             <ControlTemplate TargetType="ListView">
                                     <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                        <ScrollViewer>
-                                            <ItemsPresenter />
-                                        </ScrollViewer>
-                                    </Border>
+                                    <lb:MyScrollViewer x:Name="MyScrollViewer" >
+                                        <ItemsPresenter />
+                                    </lb:MyScrollViewer>
+                                </Border>
                                 </ControlTemplate>
                         </ListView.Template>
                             
