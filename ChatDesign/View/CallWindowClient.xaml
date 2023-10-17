@@ -13,12 +13,14 @@
             <RowDefinition Height="0.2*"/>
             <RowDefinition Height="0.3*"/>
         </Grid.RowDefinitions>
+        <Button Click="Button_Click_1" Width="120" Height="40">Start Client</Button>
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">
                 <ComboBox Name="Mic" Width="180" Height="20"></ComboBox>
                 <ComboBox Name="Sound" Width="180" Height="20" Margin="10,0,0,0"></ComboBox>
             </StackPanel>
         </Grid>
+        
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>

@@ -24,7 +24,9 @@ namespace ChatDesign.View
         {
             InitializeComponent();
             CallWindow a = new();
+            CallWindowServer b = new();
             a.Show();
+            b.Show();
         }
 
         // Login 

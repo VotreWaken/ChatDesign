@@ -33,7 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Clientwpf\Clientwpf.csproj" />
+    <ProjectReference Include="..\ConsoleApp1\Server.csproj" />
     <ProjectReference Include="..\Data\Data.csproj" />
+    <ProjectReference Include="..\WinSound\WinSound\Sound.csproj" />
   </ItemGroup>
 
   <ItemGroup>
