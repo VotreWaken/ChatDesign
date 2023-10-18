@@ -48,7 +48,6 @@ namespace ChatDesign
             InitializeComponent();
             DataContext = new MainViewModel();
 
-
             Bitmap bitmapavatar = GetImageFromByteArray(image);
             UserAvatar.ImageSource = ImageSourceFromBitmap(bitmapavatar);
             Username.Content = username;

@@ -1570,10 +1570,5 @@ namespace ChatDesign.View
             m_Player.EndPause();
             //m_Player.PlayData();
         }
-
-        private void Button_Click_4(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

@@ -23,10 +23,10 @@ namespace ChatDesign.View
         public LoginWindow()
         {
             InitializeComponent();
-            CallWindow a = new();
-            CallWindowServer b = new();
-            a.Show();
-            b.Show();
+            //CallWindow a = new();
+            //CallWindowServer b = new();
+            //a.Show();
+            //b.Show();
         }
 
         // Login 
