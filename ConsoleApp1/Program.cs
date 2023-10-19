@@ -88,8 +88,8 @@ namespace Server
                     {
                         clients.Remove(clients.Where(x => x.Username == message.Sender.Username).First());
                         Broadcast(new Message() { ServerMessage = ServerMessage.RemoveUser, Sender = new User() { Username = message.Sender.Username } });
+                        Console.WriteLine($"Disconnect User: {message.Sender}");
                     }
-
                 }
                 catch { }
 

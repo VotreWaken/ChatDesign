@@ -30,6 +30,7 @@ namespace ChatDesign.View
     {
 
         #region UI
+        // Connect Visible
         private Visibility connectIsVisible;
         public Visibility ConnectIsVisible
         {
@@ -41,6 +42,7 @@ namespace ChatDesign.View
             get => connectIsVisible;
         }
 
+        // Warnings 
         private Visibility warningVisibility;
         public Visibility WarningVisibility
         {
@@ -52,6 +54,7 @@ namespace ChatDesign.View
             get => warningVisibility;
         }
 
+        // Enable Send Button 
         private bool sendIsEnable;
         public bool SendIsEnable
         {
@@ -63,6 +66,7 @@ namespace ChatDesign.View
             get => sendIsEnable;
         }
 
+        // Username Is Enable 
         private Visibility usernameTakenLabelIsEnable;
         public Visibility UsernameTakenLabelIsEnable
         {
@@ -74,6 +78,7 @@ namespace ChatDesign.View
             get => usernameTakenLabelIsEnable;
         }
 
+        // Textbox Message
         private string textMessage;
         public string TextMessage
         {
@@ -85,6 +90,7 @@ namespace ChatDesign.View
             get => textMessage;
         }
 
+        // Reciever store Username
         private string receiver;
         public string Receiver
         {
@@ -96,7 +102,18 @@ namespace ChatDesign.View
             get => receiver;
         }
 
+        // User Profile Image
+        private ImageSource userAvatar;
 
+        public ImageSource UserAvatar
+        {
+            set
+            {
+                userAvatar = value;
+                Notify();
+            }
+            get => userAvatar;
+        }
 
         #endregion
 
@@ -156,16 +173,6 @@ namespace ChatDesign.View
         }
 
         public ObservableCollection<string> Users { set; get; }
-        public string EmailAddress { set; get; }
-        public string Online
-        {
-            set
-            {
-                Online = value;
-                Notify();
-            }
-            get => username;
-        }
         #endregion
 
         public MainViewModel(string name)
@@ -176,10 +183,8 @@ namespace ChatDesign.View
             contacts = new ObservableCollection<CustomItem>();
             foreach (var item in DbOperations.GetUserChats(DbOperations.GetUserId(Username)))
             {
-
                 Bitmap bitmap = GetImageFromByteArray(item.Avatar);
-                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, Id = item.ID });
-
+                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName,IsGroupChat = item.ChatType , Id = item.ID });
             }
             SaveOriginalContacts();
             // Initialize ChatMessages
@@ -199,24 +204,40 @@ namespace ChatDesign.View
                 MessagessItems.Add(chatMessages[i]);
             }
         }
+        //public CustomItem SelectedContact { get; set; }
+        private CustomItem selectedContact;
 
-        //public MainViewModel(string name)
+        public CustomItem SelectedContact
+        {
+            get => selectedContact;
+            set
+            {
+                if (selectedContact != value)
+                {
+                    // Store the current selected contact as the previous selected contact
+                    previousSelectedContact = selectedContact;
+                    selectedContact = value;
+
+                    // Notify that the SelectedContact property has changed
+                    Notify(nameof(SelectedContact));
+                }
+            }
+        }
+        private CustomItem previousSelectedContact;
+        //public string SelectedContact
         //{
-        //    ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
-        //    user = new Data.User();
+        //    set
+        //    {
+        //        SelectedContact = value;
+        //        if (value == Users.ElementAt(0))
+        //            Receiver = Users.ElementAt(0).ToLower();
+        //        else
+        //            Receiver = $"only {value}";
 
-        //    Users = new ObservableCollection<string>();
-        //    Users.Add("Everyone");
-        //    SelectedUser = Users.ElementAt(0);
-        //    Username = name;
-        //    ConnectIsVisible = Visibility.Visible;
-        //    WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
-        //    MessagessItems = new ObservableCollection<ChatItem>();
-        //    InitCommands();
-
-        //    System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
+        //        Notify();
+        //    }
+        //    get => selectedUser;
         //}
-        public CustomItem SelectedContact { get; set; }
 
         private void InitCommands()
         {
@@ -281,37 +302,61 @@ namespace ChatDesign.View
             ));
             ContactDoubleClickCommand = new RelayCommand(x => Task.Run(() =>
             {
-                if (SelectedContact is CustomItem selectedContact)
+                try
                 {
-                    int chatID = selectedContact.Id;
-
-                    // Load chat messages for the selected contact
-                    ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    if (SelectedContact is CustomItem selectedContact)
                     {
-                        // Clear and update the ChatMessages collection
-                        MessagessItems.Clear();
-                        foreach (var message in chatMessages)
+                        // Check if the current chat is different from the previous chat
+                        if (previousSelectedContact != null && selectedContact.Id != previousSelectedContact.Id)
                         {
-                            MessagessItems.Add(message);
+                            
+                            if (selectedContact.Id != previousSelectedContact.Id)
+                            {
+                                SendData(new Message { Sender = user, ServerMessage = ServerMessage.RemoveUser });
+                            }
                         }
-                    });
-                    ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
-                    user = new Data.User();
+                        else if (previousSelectedContact != null && selectedContact.Id == previousSelectedContact.Id)
+                        {
+                            return;
+                        }
+                        int chatID = selectedContact.Id;
 
-                    Users = new ObservableCollection<string>();
-                    Users.Add("Everyone");
-                    SelectedUser = Users.ElementAt(0);
-                    ConnectIsVisible = Visibility.Visible;
-                    WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
+                        // Load chat messages for the selected contact
+                        ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            // Clear and update the ChatMessages collection
+                            MessagessItems.Clear();
+                            foreach (var message in chatMessages)
+                            {
+                                MessagessItems.Add(message);
+                            }
+                        });
 
-                    if (ConnectCommand.CanExecute(selectedContact))
-                    {
-                        ConnectCommand.Execute(selectedContact);
+                        ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
+                        user = new Data.User();
+
+                        Users = new ObservableCollection<string>();
+                        Users.Add("Everyone");
+                        SelectedUser = Users.ElementAt(0);
+                        ConnectIsVisible = Visibility.Visible;
+                        WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
+
+                        if (ConnectCommand.CanExecute(selectedContact))
+                        {
+                            ConnectCommand.Execute(selectedContact);
+                        }
+
+                        // Update previousSelectedContact to the current selectedContact
+                        previousSelectedContact = selectedContact;
                     }
                 }
-            }
-            ));
+                catch (Exception ex)
+                {
+                    return;
+                    //MessageBox.Show(ex.Message);
+                }
+            }));
         }
 
 
@@ -342,6 +387,7 @@ namespace ChatDesign.View
             return true;
         }
 
+        // Get Data From Server
         public void GetData()
         {
             BinaryFormatter bf = new BinaryFormatter();
@@ -368,7 +414,7 @@ namespace ChatDesign.View
 
                         App.Current.Dispatcher.Invoke(new Action(() =>
                         {
-                            MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " joined the chat", IsSender = true });
+                            MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " Joined the chat", IsSender = true });
                             if (!Users.Contains(message.Sender.Username))
                                 Users.Add($"{message.Sender.Username}");
                         }));
@@ -378,153 +424,28 @@ namespace ChatDesign.View
 
                         App.Current.Dispatcher.Invoke(new Action(() =>
                         {
-                            MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " has left the chat", IsSender = true });
+                            MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " Has left the chat", IsSender = true });
                             Users.Remove(Users.Where(x => x == message.Sender.Username).First());
                         }));
                     }
                 }
 
-                catch (Exception e) { MessageBox.Show(e.Message); }
-
+                catch (Exception e)
+                {
+                    return; //MessageBox.Show(e.Message); 
+                }
             }
         }
 
+        // Send Data To Server
         public void SendData(Message message)
         {
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(nwStream, message);
         }
 
-        public void MainWindow_Closing(object sender, CancelEventArgs e)
-        {
-            try
-            {
-                SendData(new Message { Sender = user, ServerMessage = ServerMessage.RemoveUser });
-            }
-            catch { }
-        }
-
-
-
-        private ImageSource userAvatar;
-
-        public ImageSource UserAvatar
-        {
-            set
-            {
-                userAvatar = value;
-                Notify(); // Notify property change here
-            }
-            get => userAvatar;
-        }
-
-        private void MyScrollViewer_ViewChanged(object sender, Control.MyScrollViewer e)
-        {
-            var scrollViewer = (ScrollViewer)sender;
-
-            // You can determine when to load more data based on your requirements
-            if (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
-            {
-                // Load more data here
-                //YourIncrementalLoadingCollectionInstance.LoadMoreItemsAsync(20); // Load 20 more items as an example
-            }
-        }
-        public MainViewModel(string username, byte[] image)
-        {
-            Bitmap bitmapavatar = GetImageFromByteArray(image);
-            UserAvatar = ImageSourceFromBitmap(bitmapavatar);
-
-            foreach (var item in DbOperations.GetUserChats(DbOperations.GetUserId(username)))
-            {
-                Bitmap bitmap = GetImageFromByteArray(item.Avatar);
-                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, Id = item.ID });
-                
-            }
-            SaveOriginalContacts();
-            // Initialize ChatMessages
-            MessagessItems = new ObservableCollection<ChatItem>();
-            System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
-        }
-        private void SendMessage(object sender, RoutedEventArgs e)
-        {
-            //MainViewModel viewModel = (MainViewModel)DataContext;
-            //MainViewModel viewModel = (MainViewModel)DataContext;
-            //ChatItem i = new ChatItem { Content = TextMessage, IsSender = true, Sender = Username };
-            ////ChatListBox.Items.Add(i);
-            //ChatMessages.Add(i);
-        }
-        //private void ContactItem_DoubleClick(object sender, MouseButtonEventArgs e)
-        //{
-        //    // Get the selected item
-        //    CustomItem selectedItem = (CustomItem)Contacts.SelectedItem;
-
-        //    // Check if an item is selected
-        //    if (selectedItem != null)
-        //    {
-        //        LoadMessages(((CustomItem)Contacts.SelectedItem).Id);
-        //        // Invoke the ConnectCommand with the selected item as a parameter
-        //        if (ConnectCommand.CanExecute(selectedItem))
-        //        {
-        //            ConnectCommand.Execute(selectedItem);
-        //        }
-        //    }
-        //    //DataContext = this;
-        //    int chatID = ((CustomItem)Contacts.SelectedItem).Id;
-
-        //    // Load chat messages for the selected contact
-        //    ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
-
-        //    // Clear and update the ChatListBox
-        //    ChatMessages.Clear();
-        //    foreach (var message in chatMessages)
-        //    {
-        //        ChatMessages.Add(message);
-        //    }
-        //}
-
-        [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool DeleteObject([In] IntPtr hObject);
-
-        public ImageSource ImageSourceFromBitmap(Bitmap bmp)
-        {
-
-            var handle = bmp.GetHbitmap();
-            try
-            {
-                return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-            }
-            finally { DeleteObject(handle); }
-        }
-        public Byte[] ReturnImagesByteArray()
-        {
-            return DbOperations.GetImages();
-        }
-
-        private static readonly ImageConverter _imageConverter = new ImageConverter();
-        public static Bitmap GetImageFromByteArray(byte[] byteArray)
-        {
-
-            Bitmap bm = (Bitmap)_imageConverter.ConvertFrom(byteArray);
-
-            if (bm != null && (bm.HorizontalResolution != (int)bm.HorizontalResolution ||
-                               bm.VerticalResolution != (int)bm.VerticalResolution))
-            {
-                // Correct a strange glitch that has been observed in the test program when converting 
-                //  from a PNG file image created by CopyImageToByteArray() - the dpi value "drifts" 
-                //  slightly away from the nominal integer value
-                bm.SetResolution((int)(bm.HorizontalResolution + 0.5f),
-                                 (int)(bm.VerticalResolution + 0.5f));
-            }
-
-            return bm;
-        }
-
-        public ObservableCollection<ChatItem> ChatMessages { get; set; } = new ObservableCollection<ChatItem>();
 
         private List<CustomItem> originalItems = new List<CustomItem>();
-
-
         private void SaveOriginalContacts()
         {
             for (int i = 0; i < Contacts.Count; i++)
@@ -532,7 +453,6 @@ namespace ChatDesign.View
                 originalItems.Add((CustomItem)Contacts[i]);
             }
         }
-
         public string ContactsSearch
         {
             set
@@ -590,43 +510,56 @@ namespace ChatDesign.View
                 }
             }
         }
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        // Image Handler
+        #region Image Handler 
+        [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject([In] IntPtr hObject);
+
+        public ImageSource ImageSourceFromBitmap(Bitmap bmp)
         {
-            string searchText = ContactsSearch; // Replace YourTextBox with your TextBox's name
 
-            if (string.IsNullOrWhiteSpace(searchText))
+            var handle = bmp.GetHbitmap();
+            try
             {
-                Contacts.Clear();
-                // If the search text is empty, no filtering is needed, so you can leave the original items as they are.
-                for (int i = 0; i < originalItems.Count; i++)
-                {
-                    Contacts.Add((CustomItem)originalItems[i]);
-                }
+                return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
             }
-            else
-            {
-                // Create a filtered list to store the items that match the search text.
-                List<CustomItem> filteredItems = new List<CustomItem>();
-
-                foreach (CustomItem item in Contacts)
-                {
-                    if (item.Title != null && item.Title.Contains(searchText))
-                    {
-                        filteredItems.Add(item);
-                    }
-                }
-
-                // Clear the existing items in the ListView.
-                Contacts.Clear();
-
-                // Add the filtered items back to the ListView.
-                foreach (CustomItem item in filteredItems)
-                {
-                    Contacts.Add(item);
-                }
-            }
+            finally { DeleteObject(handle); }
+        }
+        public Byte[] ReturnImagesByteArray()
+        {
+            return DbOperations.GetImages();
         }
 
+        private static readonly ImageConverter _imageConverter = new ImageConverter();
+        public static Bitmap GetImageFromByteArray(byte[] byteArray)
+        {
+
+            Bitmap bm = (Bitmap)_imageConverter.ConvertFrom(byteArray);
+
+            if (bm != null && (bm.HorizontalResolution != (int)bm.HorizontalResolution ||
+                               bm.VerticalResolution != (int)bm.VerticalResolution))
+            {
+                // Correct a strange glitch that has been observed in the test program when converting 
+                //  from a PNG file image created by CopyImageToByteArray() - the dpi value "drifts" 
+                //  slightly away from the nominal integer value
+                bm.SetResolution((int)(bm.HorizontalResolution + 0.5f),
+                                 (int)(bm.VerticalResolution + 0.5f));
+            }
+
+            return bm;
+        }
+        #endregion
+
+        // Window Closing Event 
+        public void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            try
+            {
+                SendData(new Message { Sender = user, ServerMessage = ServerMessage.RemoveUser });
+            }
+            catch { }
+        }
 
     }
 }
