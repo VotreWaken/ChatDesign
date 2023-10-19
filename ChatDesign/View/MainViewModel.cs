@@ -22,7 +22,8 @@ using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-
+using static System.Net.Mime.MediaTypeNames;
+using ChatDesign.Model;
 namespace ChatDesign.View
 {
     class MainViewModel : Notifier
@@ -103,6 +104,12 @@ namespace ChatDesign.View
         public ICommand ConnectCommand { set; get; }
         public ICommand SendCommand { set; get; }
         public ICommand SendEmailCommand { set; get; }
+
+        public ICommand SearchCommand { get; private set; }
+
+        public ICommand ContactDoubleClickCommand { get; private set; }
+
+        public ICommand CloseWindowCommand { get; }
         #endregion
 
         #region Fields
@@ -116,7 +123,12 @@ namespace ChatDesign.View
 
         #region Properties
         public ObservableCollection<ChatItem> MessagessItems { set; get; }
-        public ListBox Contacts { set; get; }
+        private ObservableCollection<CustomItem> contacts;
+
+        public ObservableCollection<CustomItem> Contacts
+        {
+            get { return contacts; }
+        }
 
         public string SelectedUser
         {
@@ -156,20 +168,24 @@ namespace ChatDesign.View
         }
         #endregion
 
-        public MainViewModel()
+        public MainViewModel(string name)
         {
-            ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
-            user = new Data.User();
+            Username = name;
+            Bitmap bitmapavatar = GetImageFromByteArray(DbOperations.GetUserImage(Username));
+            UserAvatar = ImageSourceFromBitmap(bitmapavatar);
+            contacts = new ObservableCollection<CustomItem>();
+            foreach (var item in DbOperations.GetUserChats(DbOperations.GetUserId(Username)))
+            {
 
-            Users = new ObservableCollection<string>();
-            Users.Add("Everyone");
-            SelectedUser = Users.ElementAt(0);
+                Bitmap bitmap = GetImageFromByteArray(item.Avatar);
+                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, Id = item.ID });
 
-            ConnectIsVisible = Visibility.Visible;
-            WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
+            }
+            SaveOriginalContacts();
+            // Initialize ChatMessages
             MessagessItems = new ObservableCollection<ChatItem>();
             InitCommands();
-            Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
+            System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
         }
 
         public void LoadMessages(int chatID)
@@ -184,22 +200,23 @@ namespace ChatDesign.View
             }
         }
 
-        public MainViewModel(string name)
-        {
-            ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
-            user = new Data.User();
+        //public MainViewModel(string name)
+        //{
+        //    ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
+        //    user = new Data.User();
 
-            Users = new ObservableCollection<string>();
-            Users.Add("Everyone");
-            SelectedUser = Users.ElementAt(0);
-            Username = name;
-            ConnectIsVisible = Visibility.Visible;
-            WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
-            MessagessItems = new ObservableCollection<ChatItem>();
-            InitCommands();
+        //    Users = new ObservableCollection<string>();
+        //    Users.Add("Everyone");
+        //    SelectedUser = Users.ElementAt(0);
+        //    Username = name;
+        //    ConnectIsVisible = Visibility.Visible;
+        //    WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
+        //    MessagessItems = new ObservableCollection<ChatItem>();
+        //    InitCommands();
 
-            Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
-        }
+        //    System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
+        //}
+        public CustomItem SelectedContact { get; set; }
 
         private void InitCommands()
         {
@@ -236,6 +253,63 @@ namespace ChatDesign.View
                 }
                 SendData(message);
                 TextMessage = string.Empty;
+            }
+            ));
+            SearchCommand = new RelayCommand(x => Task.Run(() =>
+            {
+                string searchText = ContactsSearch;
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    List<ChatDesign.Model.User> searchResults = DbOperations.SearchUsers(searchText);
+                    MessageBox.Show(searchResults.Count.ToString());
+                    // Update your UI (e.g., a ListView or ListBox) with the search results.
+                    Contacts.Clear();
+
+                    foreach (ChatDesign.Model.User user in searchResults)
+                    {
+                        Bitmap bitmap = GetImageFromByteArray(user.ImagePath);
+                        Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = user.Name });
+                    }
+                }
+                else
+                {
+                    // Handle the case when the search text is empty (e.g., show all users).
+                    // You can reload the original list of users or display a message.
+                }
+            }
+            ));
+            ContactDoubleClickCommand = new RelayCommand(x => Task.Run(() =>
+            {
+                if (SelectedContact is CustomItem selectedContact)
+                {
+                    int chatID = selectedContact.Id;
+
+                    // Load chat messages for the selected contact
+                    ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        // Clear and update the ChatMessages collection
+                        MessagessItems.Clear();
+                        foreach (var message in chatMessages)
+                        {
+                            MessagessItems.Add(message);
+                        }
+                    });
+                    ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
+                    user = new Data.User();
+
+                    Users = new ObservableCollection<string>();
+                    Users.Add("Everyone");
+                    SelectedUser = Users.ElementAt(0);
+                    ConnectIsVisible = Visibility.Visible;
+                    WarningVisibility = UsernameTakenLabelIsEnable = Visibility.Hidden;
+
+                    if (ConnectCommand.CanExecute(selectedContact))
+                    {
+                        ConnectCommand.Execute(selectedContact);
+                    }
+                }
             }
             ));
         }
@@ -283,7 +357,7 @@ namespace ChatDesign.View
                         App.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             if (message.Sender.Username == Username)
-                                MessagessItems.Add(new ChatItem() { Sender = $"me: ", Content = message.MessageString, IsSender = false });
+                                MessagessItems.Add(new ChatItem() { Sender = $"{Username}: ", Content = message.MessageString, IsSender = true });
                             else
                                 MessagessItems.Add(new ChatItem() { Sender = $"{message.Sender.Username}: ", Content = message.MessageString, IsSender = false });
                         }));
@@ -321,7 +395,7 @@ namespace ChatDesign.View
             bf.Serialize(nwStream, message);
         }
 
-        void MainWindow_Closing(object sender, CancelEventArgs e)
+        public void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             try
             {
@@ -332,14 +406,16 @@ namespace ChatDesign.View
 
 
 
+        private ImageSource userAvatar;
+
         public ImageSource UserAvatar
         {
             set
             {
-                UserAvatar = value;
-                Notify();
+                userAvatar = value;
+                Notify(); // Notify property change here
             }
-            get => UserAvatar;
+            get => userAvatar;
         }
 
         private void MyScrollViewer_ViewChanged(object sender, Control.MyScrollViewer e)
@@ -355,58 +431,56 @@ namespace ChatDesign.View
         }
         public MainViewModel(string username, byte[] image)
         {
-
-
             Bitmap bitmapavatar = GetImageFromByteArray(image);
             UserAvatar = ImageSourceFromBitmap(bitmapavatar);
 
             foreach (var item in DbOperations.GetUserChats(DbOperations.GetUserId(username)))
             {
                 Bitmap bitmap = GetImageFromByteArray(item.Avatar);
-                Contacts.Items.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, Id = item.ID });
+                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, Id = item.ID });
                 
             }
             SaveOriginalContacts();
             // Initialize ChatMessages
-            ChatMessages = new ObservableCollection<ChatItem>();
-            Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
+            MessagessItems = new ObservableCollection<ChatItem>();
+            System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
         }
         private void SendMessage(object sender, RoutedEventArgs e)
         {
             //MainViewModel viewModel = (MainViewModel)DataContext;
             //MainViewModel viewModel = (MainViewModel)DataContext;
-            ChatItem i = new ChatItem { Content = TextMessage, IsSender = true, Sender = Username };
-            //ChatListBox.Items.Add(i);
-            ChatMessages.Add(i);
+            //ChatItem i = new ChatItem { Content = TextMessage, IsSender = true, Sender = Username };
+            ////ChatListBox.Items.Add(i);
+            //ChatMessages.Add(i);
         }
-        private void ContactItem_DoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            // Get the selected item
-            CustomItem selectedItem = (CustomItem)Contacts.SelectedItem;
+        //private void ContactItem_DoubleClick(object sender, MouseButtonEventArgs e)
+        //{
+        //    // Get the selected item
+        //    CustomItem selectedItem = (CustomItem)Contacts.SelectedItem;
 
-            // Check if an item is selected
-            if (selectedItem != null)
-            {
-                LoadMessages(((CustomItem)Contacts.SelectedItem).Id);
-                // Invoke the ConnectCommand with the selected item as a parameter
-                if (ConnectCommand.CanExecute(selectedItem))
-                {
-                    ConnectCommand.Execute(selectedItem);
-                }
-            }
-            //DataContext = this;
-            int chatID = ((CustomItem)Contacts.SelectedItem).Id;
+        //    // Check if an item is selected
+        //    if (selectedItem != null)
+        //    {
+        //        LoadMessages(((CustomItem)Contacts.SelectedItem).Id);
+        //        // Invoke the ConnectCommand with the selected item as a parameter
+        //        if (ConnectCommand.CanExecute(selectedItem))
+        //        {
+        //            ConnectCommand.Execute(selectedItem);
+        //        }
+        //    }
+        //    //DataContext = this;
+        //    int chatID = ((CustomItem)Contacts.SelectedItem).Id;
 
-            // Load chat messages for the selected contact
-            ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
+        //    // Load chat messages for the selected contact
+        //    ObservableCollection<ChatItem> chatMessages = DbOperations.LoadChatMessagesFromDatabase(chatID);
 
-            // Clear and update the ChatListBox
-            ChatMessages.Clear();
-            foreach (var message in chatMessages)
-            {
-                ChatMessages.Add(message);
-            }
-        }
+        //    // Clear and update the ChatListBox
+        //    ChatMessages.Clear();
+        //    foreach (var message in chatMessages)
+        //    {
+        //        ChatMessages.Add(message);
+        //    }
+        //}
 
         [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -453,9 +527,9 @@ namespace ChatDesign.View
 
         private void SaveOriginalContacts()
         {
-            for (int i = 0; i < Contacts.Items.Count; i++)
+            for (int i = 0; i < Contacts.Count; i++)
             {
-                originalItems.Add((CustomItem)Contacts.Items[i]);
+                originalItems.Add((CustomItem)Contacts[i]);
             }
         }
 
@@ -468,18 +542,31 @@ namespace ChatDesign.View
             }
             get => ContactsSearch;
         }
-
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private string searchText;
+        public string SearchText
         {
-            string searchText = ContactsSearch; // Replace YourTextBox with your TextBox's name
+            get { return searchText; }
+            set
+            {
+                if (searchText != value)
+                {
+                    searchText = value;
+                    Notify();
+                }
+            }
+        }
+        private void FilterContacts()
+        {
+            string searchText = SearchText;
 
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                Contacts.Items.Clear();
-                // If the search text is empty, no filtering is needed, so you can leave the original items as they are.
-                for (int i = 0; i < originalItems.Count; i++)
+                // If the search text is empty, no filtering is needed.
+                // You can update the Contacts collection to the original items.
+                Contacts.Clear();
+                foreach (CustomItem item in originalItems)
                 {
-                    Contacts.Items.Add((CustomItem)originalItems[i]);
+                    Contacts.Add(item);
                 }
             }
             else
@@ -487,7 +574,41 @@ namespace ChatDesign.View
                 // Create a filtered list to store the items that match the search text.
                 List<CustomItem> filteredItems = new List<CustomItem>();
 
-                foreach (CustomItem item in Contacts.Items)
+                foreach (CustomItem item in originalItems)
+                {
+                    if (item.Title != null && item.Title.Contains(searchText))
+                    {
+                        filteredItems.Add(item);
+                    }
+                }
+
+                // Update the Contacts collection with the filtered items.
+                Contacts.Clear();
+                foreach (CustomItem item in filteredItems)
+                {
+                    Contacts.Add(item);
+                }
+            }
+        }
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string searchText = ContactsSearch; // Replace YourTextBox with your TextBox's name
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                Contacts.Clear();
+                // If the search text is empty, no filtering is needed, so you can leave the original items as they are.
+                for (int i = 0; i < originalItems.Count; i++)
+                {
+                    Contacts.Add((CustomItem)originalItems[i]);
+                }
+            }
+            else
+            {
+                // Create a filtered list to store the items that match the search text.
+                List<CustomItem> filteredItems = new List<CustomItem>();
+
+                foreach (CustomItem item in Contacts)
                 {
                     if (item.Title != null && item.Title.Contains(searchText))
                     {
@@ -496,39 +617,16 @@ namespace ChatDesign.View
                 }
 
                 // Clear the existing items in the ListView.
-                Contacts.Items.Clear();
+                Contacts.Clear();
 
                 // Add the filtered items back to the ListView.
                 foreach (CustomItem item in filteredItems)
                 {
-                    Contacts.Items.Add(item);
+                    Contacts.Add(item);
                 }
             }
         }
 
-        private void SearchButton_Click(object sender, RoutedEventArgs e)
-        {
-            string searchText = ContactsSearch;
-
-            if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                List<ChatDesign.Model.User> searchResults = DbOperations.SearchUsers(searchText);
-                MessageBox.Show(searchResults.Count.ToString());
-                // Update your UI (e.g., a ListView or ListBox) with the search results.
-                Contacts.Items.Clear();
-
-                foreach (ChatDesign.Model.User user in searchResults)
-                {
-                    Bitmap bitmap = GetImageFromByteArray(user.ImagePath);
-                    Contacts.Items.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = user.Name });
-                }
-            }
-            else
-            {
-                // Handle the case when the search text is empty (e.g., show all users).
-                // You can reload the original list of users or display a message.
-            }
-        }
 
     }
 }

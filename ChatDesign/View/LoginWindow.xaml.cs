@@ -1,6 +1,7 @@
 ﻿using ChatDesign.Model;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace ChatDesign.View
             //CallWindowServer b = new();
             //a.Show();
             //b.Show();
+
         }
 
         // Login 
@@ -42,8 +44,12 @@ namespace ChatDesign.View
                 // Successful Login
                 MessageBox.Show("Login Successful");
 
+                MainViewModel mainViewModel = new MainViewModel(username);
                 // Login Default User 
-                MainWindow a = new(username, DbOperations.GetUserImage(UserName.Text));
+
+                MainWindow a = new MainWindow();
+                a.DataContext = mainViewModel;
+                a.Closing += new CancelEventHandler(mainViewModel.MainWindow_Closing);
                 a.Show();
                 this.Close();
             }

@@ -8,21 +8,10 @@
         xmlns:lb="clr-namespace:ChatDesign.Control"
         xmlns:md="clr-namespace:ChatDesign.Model"
         mc:Ignorable="d"
+        Closing="Window_Closing"
         Title="MainWindow" MinWidth="500" Height="450" Width="800">
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
 
     <Grid>
-        <Grid.Resources>
-            <Storyboard x:Key="ShowLeftPanelAnimation">
-                <DoubleAnimation Storyboard.TargetName="LeftPanelTranslation" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.5"/>
-            </Storyboard>
-
-            <Storyboard x:Key="HideLeftPanelAnimation">
-                <DoubleAnimation Storyboard.TargetName="LeftPanelTranslation" Storyboard.TargetProperty="X" To="-200" Duration="0:0:0.5"/>
-            </Storyboard>
-        </Grid.Resources>
         <!-- Main Grid -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
@@ -30,22 +19,10 @@
         </Grid.ColumnDefinitions>
 
         <Grid x:Name="LeftPanel" Grid.Column="0">
-            <Grid.RenderTransform>
-                <TranslateTransform x:Name="LeftPanelTranslation" X="0"/>
-            </Grid.RenderTransform>
             <Grid.RowDefinitions>
                 <RowDefinition Height="50"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid.Resources>
-                <Storyboard x:Key="ShowLeftPanelAnimation">
-                    <DoubleAnimation Storyboard.TargetName="LeftPanelTranslation" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.5"/>
-                </Storyboard>
-
-                <Storyboard x:Key="HideLeftPanelAnimation">
-                    <DoubleAnimation Storyboard.TargetName="LeftPanelTranslation" Storyboard.TargetProperty="X" To="-200" Duration="0:0:0.5"/>
-                </Storyboard>
-            </Grid.Resources>
             <!-- Left Side Upper Grid -->
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
@@ -54,7 +31,7 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
 
-                <ToggleButton Cursor="Hand" Click="ReturnLeftPanel" x:Name="ReturnButton" Checked="ShowLeftPanel" Unchecked="HideLeftPanel" Style="{StaticResource MyToggleButton2}" HorizontalAlignment="Center" Grid.Column="0" Width="40" Height="40">
+                <ToggleButton Cursor="Hand" x:Name="ReturnButton" Style="{StaticResource MyToggleButton2}" HorizontalAlignment="Center" Grid.Column="0" Width="40" Height="40">
                     <Image HorizontalAlignment="Center" Grid.Column="0" Width="20" Height="20" Source="../Assets/LeftPanel.png"></Image>
                     <ToggleButton.Resources>
                         <Style TargetType="{x:Type Border}">
@@ -62,9 +39,9 @@
                         </Style>
                     </ToggleButton.Resources>
                 </ToggleButton>
-                <Rectangle x:Name="Overlay" Grid.Column="1" Grid.Row="0" Fill="Transparent" MouseDown="HideLeftPanel" Visibility="Collapsed"/>
+                <Rectangle x:Name="Overlay" Grid.Column="1" Grid.Row="0" Fill="Transparent" Visibility="Collapsed"/>
 
-                <Button Click="SearchButton_Click" x:Name="SearchUsers" Cursor="Hand" Style="{StaticResource MyButton2}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
+                <Button Command="{Binding SearchCommand}" x:Name="SearchUsers" Cursor="Hand" Style="{StaticResource MyButton2}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
                     <Image Grid.Column="1" Width="20" Height="20" Source="../Assets/Search.png"></Image>
                     <Button.Resources>
                         <Style TargetType="{x:Type Border}">
@@ -72,7 +49,7 @@
                         </Style>
                     </Button.Resources>
                 </Button>
-                <TextBox Name="Tb_ContactsSearch" TextChanged="TextBox_TextChanged" Grid.Column="2" Width="80" Height="20" VerticalAlignment="Center">
+                <TextBox Name="Tb_ContactsSearch" Text="{Binding SearchText, Mode=TwoWay}" Grid.Column="2" Width="80" Height="20" VerticalAlignment="Center">
                     <TextBox.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="7"/>
@@ -82,7 +59,7 @@
             </Grid>
 
 
-            <ListBox Name="Contacts" Grid.Row="1" MouseDoubleClick="ContactItem_DoubleClick" ItemsSource="{Binding Contacts}">
+            <ListBox Name="Contacts" Grid.Row="1" SelectedItem="{Binding SelectedContact}" lb:ListBoxDoubleClickBehavior.DoubleClickCommand="{Binding ContactDoubleClickCommand}" ItemsSource="{Binding Contacts}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -94,11 +71,10 @@
                             </Border>
                             <Label Content="{Binding Title}" />
                             <Label Background="{Binding Online}" />
-                            
+
                         </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-
                 <ListBox.Resources>
                     <Style TargetType="Border">
                         <Setter Property="CornerRadius" Value="20"/>
@@ -125,7 +101,7 @@
                     </Grid.ColumnDefinitions>
                     <Border Cursor="Hand" Grid.Column="0" Grid.Row="0" Height="40" CornerRadius="20">
                         <Border.Background>
-                        <ImageBrush Stretch="Fill" x:Name="UserAvatar" ImageSource="{Binding Path=ImagePath}"/>
+                        <ImageBrush Stretch="Fill" x:Name="UserAvatar" ImageSource="{Binding Path=UserAvatar}"/>
                         </Border.Background>
                     </Border>
                     <Grid Grid.Column="1">
@@ -236,7 +212,7 @@
                             <TextBox Margin="0,5,0,0" MinWidth="450" TextWrapping="Wrap" BorderThickness="0" HorizontalAlignment="Center" Grid.Column ="0" Name="MessageInput" Text="{Binding TextMessage}" Background="Transparent">
                             </TextBox>
                             </Border>
-                        <Button Click="SendMessage" Style="{StaticResource MyButton2}" IsEnabled="{Binding SendIsEnable}" Command="{Binding SendCommand}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
+                        <Button Style="{StaticResource MyButton2}" IsEnabled="{Binding SendIsEnable}" Command="{Binding SendCommand}" HorizontalAlignment="Center" Grid.Column="1" Width="40" Height="40">
                                 Send
                                 <Button.Resources>
                                     <Style TargetType="{x:Type Border}">
