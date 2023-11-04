@@ -24,6 +24,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using static System.Net.Mime.MediaTypeNames;
 using ChatDesign.Model;
+using System.Reflection.Metadata;
+
 namespace ChatDesign.View
 {
     class MainViewModel : Notifier
@@ -115,6 +117,18 @@ namespace ChatDesign.View
             get => userAvatar;
         }
 
+
+        // Call Image
+        private ImageSource callImage;
+        public ImageSource CallImage
+        {
+            set
+            {
+                callImage = value;
+                Notify();
+            }
+            get => callImage;
+        }
         #endregion
 
         #region Commands
@@ -127,6 +141,9 @@ namespace ChatDesign.View
         public ICommand ContactDoubleClickCommand { get; private set; }
 
         public ICommand CloseWindowCommand { get; }
+
+        public ICommand CallCommand { get; private set; }
+
         #endregion
 
         #region Fields
@@ -180,16 +197,30 @@ namespace ChatDesign.View
             Username = name;
             Bitmap bitmapavatar = GetImageFromByteArray(DbOperations.GetUserImage(Username));
             UserAvatar = ImageSourceFromBitmap(bitmapavatar);
+
+
+            string imagePath = "/Assets/Call.png";
+
+
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.UriSource = new Uri(imagePath, UriKind.RelativeOrAbsolute);
+            bitmapImage.EndInit();
+
+            // Set the CallImage property to the loaded image.
+            CallImage = bitmapImage;
+
             contacts = new ObservableCollection<CustomItem>();
             foreach (var item in DbOperations.GetUserChats(DbOperations.GetUserId(Username)))
             {
                 Bitmap bitmap = GetImageFromByteArray(item.Avatar);
-                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName,IsGroupChat = item.ChatType , Id = item.ID });
+                Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = item.ChatName, IsGroupChat = item.ChatType, Id = item.ID });
             }
             SaveOriginalContacts();
             // Initialize ChatMessages
             MessagessItems = new ObservableCollection<ChatItem>();
             InitCommands();
+            SendIsEnable = true;
             System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
         }
 
@@ -281,12 +312,12 @@ namespace ChatDesign.View
                 string searchText = ContactsSearch;
 
                 if (!string.IsNullOrWhiteSpace(searchText))
-                {
+                {   // Add Result From Data Base To List
                     List<ChatDesign.Model.User> searchResults = DbOperations.SearchUsers(searchText);
-                    MessageBox.Show(searchResults.Count.ToString());
-                    // Update your UI (e.g., a ListView or ListBox) with the search results.
-                    Contacts.Clear();
 
+                    // Update UI
+                    Contacts.Clear();
+                    // Get User Avatars 
                     foreach (ChatDesign.Model.User user in searchResults)
                     {
                         Bitmap bitmap = GetImageFromByteArray(user.ImagePath);
@@ -295,9 +326,13 @@ namespace ChatDesign.View
                 }
                 else
                 {
-                    // Handle the case when the search text is empty (e.g., show all users).
-                    // You can reload the original list of users or display a message.
+
                 }
+            }
+            ));
+            CallCommand = new RelayCommand(x => Task.Run(() =>
+            {
+                SendData(new Message { Sender = user, ServerMessage = ServerMessage.CallMessage, Reciever = user });
             }
             ));
             ContactDoubleClickCommand = new RelayCommand(x => Task.Run(() =>
@@ -309,7 +344,7 @@ namespace ChatDesign.View
                         // Check if the current chat is different from the previous chat
                         if (previousSelectedContact != null && selectedContact.Id != previousSelectedContact.Id)
                         {
-                            
+
                             if (selectedContact.Id != previousSelectedContact.Id)
                             {
                                 SendData(new Message { Sender = user, ServerMessage = ServerMessage.RemoveUser });
@@ -360,6 +395,9 @@ namespace ChatDesign.View
         }
 
 
+
+
+
         public bool Connect()
         {
             user.Client = new TcpClient();
@@ -367,7 +405,13 @@ namespace ChatDesign.View
             nwStream = user.Client.GetStream();
 
             Username = Username ?? "Unknown";
-            nwStream.Write(Encoding.Default.GetBytes(Username), 0, Username.Length);
+
+
+            string combinedInfo = Username + "||" + SelectedContact.Title;
+
+            byte[] data = Encoding.Default.GetBytes(combinedInfo);
+
+            nwStream.Write(data, 0, data.Length);
             nwStream.Flush();
 
             BinaryFormatter bf = new BinaryFormatter();
@@ -428,8 +472,51 @@ namespace ChatDesign.View
                             Users.Remove(Users.Where(x => x == message.Sender.Username).First());
                         }));
                     }
-                }
+                    else if (message.ServerMessage == ServerMessage.CallMessage)
+                    {
+                        App.Current.Dispatcher.Invoke(new Action(() =>
+                        {
+                            MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " Started Audio Call", IsSender = true });
+                            string imagePath = "/Assets/GreenCall.png";
+                            BitmapImage bitmapImage = new BitmapImage();
+                            bitmapImage.BeginInit();
+                            bitmapImage.UriSource = new Uri(imagePath, UriKind.RelativeOrAbsolute);
+                            bitmapImage.EndInit();
+                            if (message.MessageString == "0")
+                            {
+                                try
+                                {
+                                    App.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        CallWindowServer CallWindow = new();
+                                        CallWindow.Show();
+                                    });
+                                }
+                                catch (Exception)
+                                {
+                                    
+                                }
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    App.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        CallWindow callWindowClient = new();
+                                        callWindowClient.Show();
+                                    });
+                                }
+                                catch (Exception)
+                                {
 
+                                }
+                            }
+                            // Set the CallImage property to the loaded image.
+                            CallImage = bitmapImage;
+                        }));
+                    }
+                }
                 catch (Exception e)
                 {
                     return; //MessageBox.Show(e.Message); 

@@ -35,7 +35,11 @@ namespace ChatDesign
         {
             InitializeComponent();
         }
-
+        private void ChatListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Clear the selection
+            ChatListBox.SelectedItem = null;
+        }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
 

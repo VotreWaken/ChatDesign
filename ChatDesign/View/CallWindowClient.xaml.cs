@@ -145,18 +145,18 @@ namespace ChatDesign.View
         {
             try
             {
-                //Wenn der Player gestartet wurde
+                // When Player Started 
                 if (m_PlayerClient != null)
                 {
                     if (m_PlayerClient.Opened)
                     {
-                        //RTP Header auslesen
+                        // Reading RTP Packet Header 
                         WinSound.RTPPacket rtp = new WinSound.RTPPacket(data);
 
-                        //Wenn Header korrekt
+                        // Recieve Header 
                         if (rtp.Data != null)
                         {
-                            //In JitterBuffer hinzufügen
+                            // Add to Buffer 
                             if (m_JitterBufferClientPlaying != null)
                             {
                                 m_JitterBufferClientPlaying.AddData(rtp);
@@ -166,7 +166,7 @@ namespace ChatDesign.View
                 }
                 else
                 {
-                    //Konfigurationsdaten erhalten
+                    // Take Configuraton Data
                     OnClientConfigReceived(sender, data);
                 }
             }

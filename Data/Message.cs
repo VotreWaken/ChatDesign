@@ -17,5 +17,7 @@ namespace Data
         // public bool ServerMessage { set; get; }
         public ServerMessage ServerMessage { set; get; } = ServerMessage.None;
         public List<User> Users { set; get; } = new List<User>();
+
+        public string ChatName { set; get; }
     }
 }

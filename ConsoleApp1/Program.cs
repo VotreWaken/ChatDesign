@@ -7,12 +7,15 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using Data;
+using System.Net.Mail;
+
 namespace Server
 {
     class Program
     {
-
         static List<User> clients;
+        static Dictionary<string, List<User>> chatRooms; // Store chat rooms
+
         static void Main(string[] args)
         {
             IPEndPoint ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
@@ -21,42 +24,50 @@ namespace Server
 
             Console.WriteLine("Server started...");
             clients = new List<User>();
+            chatRooms = new Dictionary<string, List<User>>(); // Initialize chat rooms
 
             while (true)
             {
                 User user = new User();
                 user.Client = server.AcceptTcpClient();
-
                 BinaryFormatter bf = new BinaryFormatter();
                 NetworkStream nwStream = user.Client.GetStream();
 
-                //reading client's info
+                // Reading client's info
                 byte[] buffer1 = new byte[255];
                 int bytesRead1 = nwStream.Read(buffer1, 0, 255);
-                string username = Encoding.Default.GetString(buffer1, 0, bytesRead1);
+                string combinedInfo = Encoding.Default.GetString(buffer1, 0, bytesRead1);
 
+                string[] infoParts = combinedInfo.Split(new string[] { "||" }, StringSplitOptions.None);
+
+                string username = infoParts[0];
+                string chatRoomName = infoParts[1];
+                Console.WriteLine(username + chatRoomName);
                 if (CheckUsername(username))
                 {
                     bf.Serialize(nwStream, new Message() { ServerMessage = ServerMessage.WrongUsername, MessageString = username });
                     continue;
                 }
+
                 user.Online = true;
                 user.Username = username;
                 clients.Add(user);
 
-                //send all users back
-                Console.WriteLine(user.Client.Client.RemoteEndPoint.ToString());
+
+                JoinChatRoom(user, chatRoomName);
+
+                // Send all users back
                 bf.Serialize(nwStream, new Message() { ServerMessage = ServerMessage.UsersCollection, Users = clients });
 
-                //send new user to everyone
-                Broadcast(new Message() { ServerMessage = ServerMessage.AddUser, Sender = user });
-                Task.Run(() => CatchMessages(nwStream));
+                // Send new user to everyone in the same chat room
+                Broadcast(new Message() { ServerMessage = ServerMessage.AddUser, Sender = user }, chatRoomName);
+                Task.Run(() => CatchMessages(nwStream, user, chatRoomName));
             }
         }
 
-        static void Broadcast(Message message)
+        static void Broadcast(Message message, string chatRoomName)
         {
-            foreach (var client in clients)
+            foreach (var client in chatRooms[chatRoomName])
             {
                 Task.Run(() =>
                 {
@@ -66,8 +77,8 @@ namespace Server
                 });
             }
         }
-
-        static void CatchMessages(NetworkStream stream)
+        static public bool AudioCallServer { get; set; }
+        static void CatchMessages(NetworkStream stream, User user, string chatRoomName)
         {
             BinaryFormatter bf = new BinaryFormatter();
             while (true)
@@ -76,24 +87,51 @@ namespace Server
                 {
                     Message message = (Message)bf.Deserialize(stream);
                     if (message.ServerMessage == ServerMessage.Broadcast)
-                        Broadcast(new Message() { MessageString = message.MessageString, Sender = message.Sender, ServerMessage = ServerMessage.Message });
+                        Broadcast(new Message() { MessageString = message.MessageString, Sender = user, ServerMessage = ServerMessage.Message }, chatRoomName);
                     else if (message.ServerMessage == ServerMessage.Message)
                     {
-                        NetworkStream nwStream = clients.Where(x => x.Username == message.Reciever.Username).First().Client.GetStream();
-                        NetworkStream nwStreamSender = clients.Where(x => x.Username == message.Sender.Username).First().Client.GetStream();
-                        bf.Serialize(nwStream, new Message() { Sender = message.Sender, MessageString = message.MessageString, ServerMessage = ServerMessage.Message });
-                        bf.Serialize(nwStreamSender, new Message() { Sender = message.Sender, MessageString = message.MessageString, ServerMessage = ServerMessage.Message });
+                        User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
+                        if (receiver != null)
+                        {
+                            SendMessageToUser(user, receiver, message, chatRoomName);
+                        }
                     }
                     else if (message.ServerMessage == ServerMessage.RemoveUser)
                     {
-                        clients.Remove(clients.Where(x => x.Username == message.Sender.Username).First());
-                        Broadcast(new Message() { ServerMessage = ServerMessage.RemoveUser, Sender = new User() { Username = message.Sender.Username } });
-                        Console.WriteLine($"Disconnect User: {message.Sender}");
+                        clients.Remove(user);
+                        chatRooms[chatRoomName].Remove(user);
+                        Broadcast(new Message() { ServerMessage = ServerMessage.RemoveUser, Sender = user }, chatRoomName);
+                        Console.WriteLine($"User disconnected: {user.Username}");
+                    }
+                    else if (message.ServerMessage == ServerMessage.CallMessage)
+                    {
+                        if (AudioCallServer == false)
+                        {
+                            User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
+                            SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "1" }, chatRoomName);
+                            //Broadcast(new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "1" }, chatRoomName);
+                            Console.WriteLine($"Joined to Audio Call: {user.Username}"); AudioCallServer = true;
+                        }
+                        else
+                        {
+                            User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
+                            SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "0" }, chatRoomName);
+                            //Broadcast(new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "0" }, chatRoomName);
+                            Console.WriteLine($"Started Audio Call: {user.Username}");
+                        }
                     }
                 }
-                catch { }
 
+                catch { }
             }
+        }
+        static void JoinChatRoom(User user, string chatRoomName)
+        {
+            if (!chatRooms.ContainsKey(chatRoomName))
+                chatRooms[chatRoomName] = new List<User>();
+
+            chatRooms[chatRoomName].Add(user);
+
         }
 
         public static bool CheckUsername(string username)
@@ -101,5 +139,18 @@ namespace Server
             return clients.Select(x => x.Username).Contains(username);
         }
 
+        static User GetUserByName(string username, string chatRoomName)
+        {
+            return chatRooms.ContainsKey(chatRoomName)
+                ? chatRooms[chatRoomName].FirstOrDefault(user => user.Username == username)
+                : null;
+        }
+
+        static void SendMessageToUser(User sender, User receiver, Message message, string chatRoomName)
+        {
+            NetworkStream nwStream = receiver.Client.GetStream();
+            BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(nwStream, message);
+        }
     }
 }

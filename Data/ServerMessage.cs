@@ -15,6 +15,7 @@ namespace Data
         Message,
         BreakConnection,
         Broadcast,
-        WrongUsername
+        WrongUsername,
+        CallMessage
     }
 }

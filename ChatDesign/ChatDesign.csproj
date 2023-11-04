@@ -20,7 +20,9 @@
     <None Remove="Assets\backgrond.png" />
     <None Remove="Assets\Call.png" />
     <None Remove="Assets\DeclineCall.png" />
+    <None Remove="Assets\GreenCall.png" />
     <None Remove="Assets\LeftPanel.png" />
+    <None Remove="Assets\Logo.png" />
     <None Remove="Assets\MicMute.png" />
     <None Remove="Assets\Search.png" />
     <None Remove="Assets\ShowMore.png" />
@@ -44,7 +46,9 @@
     <Resource Include="Assets\backgrond.png" />
     <Resource Include="Assets\Call.png" />
     <Resource Include="Assets\DeclineCall.png" />
+    <Resource Include="Assets\GreenCall.png" />
     <Resource Include="Assets\LeftPanel.png" />
+    <Resource Include="Assets\Logo.png" />
     <Resource Include="Assets\MicMute.png" />
     <Resource Include="Assets\Search.png" />
     <Resource Include="Assets\ShowMore.png" />
