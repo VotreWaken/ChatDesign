@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatDesign.View"
         mc:Ignorable="d"
+        Icon="../Assets/Logo.png"
         MinWidth="400"
         Title="LoginWindow" Height="450" Width="800">
     <Grid>

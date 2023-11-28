@@ -7,7 +7,7 @@
 
         <Style x:Key="MyButton2" TargetType="Button">
             
-            <Setter Property="Border.CornerRadius" Value="20" />
+            <Setter Property="Border.CornerRadius" Value="7" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="White" />
             <Style.Triggers>
@@ -37,7 +37,7 @@
 
         <Style x:Key="MyToggleButton2" TargetType="ToggleButton">
 
-            <Setter Property="Border.CornerRadius" Value="20" />
+            <Setter Property="Border.CornerRadius" Value="7" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="White" />
             <Style.Triggers>
@@ -105,6 +105,161 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!--Context Menu-->
+        <Style x:Key="CustomContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="Black" />
+            <Setter Property="BorderThickness" Value="5" />
+            <Setter Property="BorderBrush" Value="Black" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10">
+                            <!-- Adjust the CornerRadius as needed -->
+                            <StackPanel IsItemsHost="True" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CustomMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Button -->
+
+        <Style x:Key="EllipseToggleButtonStyle"
+           TargetType="{x:Type ToggleButton}">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Foreground" Value="{DynamicResource ButtonText}" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Border.CornerRadius" Value="7" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ButtonBase}">
+                        <Grid>
+                            <Border Name="Border"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="7"/>
+                            
+
+                            <ContentPresenter Name="Presenter"
+                                          Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonTextDisabled}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource ButtonBackgroundHover}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonTextHover}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="False">
+                                <Setter Property="Background" Value="{DynamicResource ButtonBackgroundHover}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonTextHover}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPressed}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ButtonBackgroundPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonBackgroundPressed}" />
+                            </Trigger>
+                            <Trigger Property="ToggleButton.IsChecked" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource ButtonText}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource ButtonBackground}" />
+                            </Trigger>
+
+                            
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                            To="#8BABD8"
+                            Duration="0:0:0.3" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
+                            To="Transparent"
+                            Duration="0:0:1.3" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+
+                            
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Width" Value="20" />
+        </Style>
+
+        <DataTemplate x:Key="PlusIcon">
+            <Viewbox HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch">
+                <Canvas Width="100"
+                    Height="100">
+                    <Rectangle Canvas.Top="37.5"
+                           Width="100"
+                           Height="25"
+                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                    <Rectangle Canvas.Left="37.5"
+                           Width="25"
+                           Height="100"
+                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+                </Canvas>
+            </Viewbox>
+        </DataTemplate>
+        <DataTemplate x:Key="DeleteIcon">
+            <Viewbox HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch">
+                <Canvas Width="100"
+                    Height="100">
+                    <Canvas Width="100"
+                        Height="100">
+                        <Polygon Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                             Points="20,0 50,30 80,0 100,20 70,50 100,70 80,100 50,70 20,100 0,80 30,50 0,20" />
+                    </Canvas>
+                </Canvas>
+            </Viewbox>
+        </DataTemplate>
 
     </Application.Resources>
 </Application>

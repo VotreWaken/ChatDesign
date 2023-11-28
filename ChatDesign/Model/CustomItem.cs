@@ -12,7 +12,6 @@ namespace ChatDesign.Model
     {
         public int Id { get; set; }
         public string Title { get; set; }
-
         public bool IsGroupChat { get; set; }
         public ImageSource ImagePath { get; set; }
     }

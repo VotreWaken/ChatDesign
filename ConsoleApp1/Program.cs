@@ -42,7 +42,7 @@ namespace Server
 
                 string username = infoParts[0];
                 string chatRoomName = infoParts[1];
-                Console.WriteLine(username + chatRoomName);
+                Console.WriteLine(username + " Joined " + chatRoomName);
                 if (CheckUsername(username))
                 {
                     bf.Serialize(nwStream, new Message() { ServerMessage = ServerMessage.WrongUsername, MessageString = username });
@@ -101,7 +101,7 @@ namespace Server
                         clients.Remove(user);
                         chatRooms[chatRoomName].Remove(user);
                         Broadcast(new Message() { ServerMessage = ServerMessage.RemoveUser, Sender = user }, chatRoomName);
-                        Console.WriteLine($"User disconnected: {user.Username}");
+                        Console.WriteLine($"User disconnected: {user.Username} From {chatRoomName}");
                     }
                     else if (message.ServerMessage == ServerMessage.CallMessage)
                     {

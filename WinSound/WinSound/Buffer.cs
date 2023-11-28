@@ -6,16 +6,16 @@ using System.Text;
 namespace WinSound
 {
     /// <summary>
-    /// JitterBuffer
+    /// Buffer
     /// </summary>
     public class Buffer
     {
         /// <summary>
-        /// Konstruktor
+        /// Constructor
         /// </summary>
         public Buffer(Object sender, uint maxRTPPackets, uint timerIntervalInMilliseconds)
         {
-            //Mindestanzahl einhalten
+            // Maintain minimum number
             if (maxRTPPackets < 2)
             {
                 throw new Exception("Wrong Arguments. Minimum maxRTPPackets is 2");
@@ -28,7 +28,7 @@ namespace WinSound
             Init();
         }
 
-        //Attribute
+        // Attribute
         private Object m_Sender = null;
         private uint m_MaxRTPPackets = 10;
         private uint m_TimerIntervalInMilliseconds = 20;
@@ -38,12 +38,12 @@ namespace WinSound
         private bool m_Underflow = true;
         private bool m_Overflow = false;
 
-        //Delegates bzw. Event
+        // Delegates && Event
         public delegate void DelegateDataAvailable(Object sender, RTPPacket packet);
         public event DelegateDataAvailable DataAvailable;
 
         /// <summary>
-        /// Anzahl Packete im Buffer
+        /// Number of packets in the buffer
         /// </summary>
         public int Length
         {
@@ -53,7 +53,7 @@ namespace WinSound
             }
         }
         /// <summary>
-        /// Maximale Anzahl an RTP Packeten
+        /// Maximum number of RTP packets
         /// </summary>
         public uint Maximum
         {
@@ -63,7 +63,7 @@ namespace WinSound
             }
         }
         /// <summary>
-        /// IntervalInMilliseconds
+        /// Interval In Milliseconds
         /// </summary>
         public uint IntervalInMilliseconds
         {
@@ -111,23 +111,23 @@ namespace WinSound
             {
                 if (DataAvailable != null)
                 {
-                    //Wenn Daten vorhanden
+                    // If data exists
                     if (m_Buffer.Count > 0)
                     {
-                        //Wenn Überlauf
+                        // If overflow
                         if (m_Overflow)
                         {
-                            //Warten bis Buffer halb - leer ist
+                            // Wait until buffer is half empty
                             if (m_Buffer.Count <= m_MaxRTPPackets / 2)
                             {
                                 m_Overflow = false;
                             }
                         }
 
-                        //Wenn Underflow
+                        // If underflow
                         if (m_Underflow)
                         {
-                            //Warten bis Buffer halb - voll ist
+                            // Warten bis Buffer halb - voll ist
                             if (m_Buffer.Count < m_MaxRTPPackets / 2)
                             {
                                 return;
@@ -138,21 +138,21 @@ namespace WinSound
                             }
                         }
 
-                        //Daten schicken
+                        // Daten schicken
                         m_LastRTPPacket = m_Buffer.Dequeue();
                         DataAvailable(m_Sender, m_LastRTPPacket);
                     }
                     else
                     {
-                        //Kein Overflow
+                        // Kein Overflow
                         m_Overflow = false;
 
-                        //Wenn Buffer leer
+                        // Wenn Buffer leer
                         if (m_LastRTPPacket != null && m_Underflow == false)
                         {
                             if (m_LastRTPPacket.Data != null)
                             {
-                                //Underflow vorhanden
+                                // Underflow vorhanden
                                 m_Underflow = true;
                             }
                         }

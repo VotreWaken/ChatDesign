@@ -223,7 +223,6 @@ namespace ChatDesign.View
             SendIsEnable = true;
             System.Windows.Application.Current.MainWindow.Closing += new CancelEventHandler(MainWindow_Closing);
         }
-
         public void LoadMessages(int chatID)
         {
             // Load chat messages for the selected contact
@@ -231,7 +230,6 @@ namespace ChatDesign.View
 
             for (int i = 0; i < chatMessages.Count; i++)
             {
-
                 MessagessItems.Add(chatMessages[i]);
             }
         }
@@ -303,26 +301,30 @@ namespace ChatDesign.View
                     message.ServerMessage = ServerMessage.Message;
                     message.Reciever = new Data.User() { Username = SelectedUser };
                 }
-                SendData(message);
+                SendData(message); SaveMessageToDb();
                 TextMessage = string.Empty;
             }
             ));
             SearchCommand = new RelayCommand(x => Task.Run(() =>
             {
-                string searchText = ContactsSearch;
+                string searchText = SearchText;
 
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {   // Add Result From Data Base To List
                     List<ChatDesign.Model.User> searchResults = DbOperations.SearchUsers(searchText);
-
+                    MessageBox.Show(searchText + " " + searchResults.Count.ToString());
                     // Update UI
-                    Contacts.Clear();
-                    // Get User Avatars 
-                    foreach (ChatDesign.Model.User user in searchResults)
+                    App.Current.Dispatcher.Invoke(() =>
                     {
-                        Bitmap bitmap = GetImageFromByteArray(user.ImagePath);
-                        Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = user.Name });
-                    }
+                        Contacts.Clear();
+
+                        // Get User Avatars 
+                        foreach (ChatDesign.Model.User user in searchResults)
+                        {
+                            Bitmap bitmap = GetImageFromByteArray(user.ImagePath);
+                            Contacts.Add(new CustomItem { ImagePath = ImageSourceFromBitmap(bitmap), Title = user.Name });
+                        }
+                    });
                 }
                 else
                 {
@@ -337,6 +339,11 @@ namespace ChatDesign.View
             ));
             ContactDoubleClickCommand = new RelayCommand(x => Task.Run(() =>
             {
+                //if (!Connect())
+                //{
+                //    UsernameTakenLabelIsEnable = Visibility.Visible;              IMPORTANT UNCOMMENT BEFORE DEBUGGING THAT 
+                //    return;
+                //}
                 try
                 {
                     if (SelectedContact is CustomItem selectedContact)
@@ -396,7 +403,19 @@ namespace ChatDesign.View
 
 
 
+        public void SaveMessageToDb()
+        {
+            MessagesDataBase message = new MessagesDataBase
+            {
+                SenderId = DbOperations.GetUserId(Username),
+                ReceiverId = selectedContact.Id,
+                Content = TextMessage,
+            };
 
+            // Call the method to add the message to the database
+            DbOperations.AddMessage(message);
+
+        }
 
         public bool Connect()
         {
@@ -494,7 +513,7 @@ namespace ChatDesign.View
                                 }
                                 catch (Exception)
                                 {
-                                    
+
                                 }
                             }
                             else
@@ -647,6 +666,24 @@ namespace ChatDesign.View
             }
             catch { }
         }
+
+
+        // button 
+
+        public ICommand AddCommand => new BtnCommand(() =>
+        {
+            MessageBox.Show("Add command executed");
+        });
+
+        public ICommand MoveCommand => new BtnCommand(() =>
+        {
+            MessageBox.Show("Move command executed");
+        });
+
+        public ICommand DeleteCommand => new BtnCommand(() =>
+        {
+            MessageBox.Show("Delete command executed");
+        });
 
     }
 }

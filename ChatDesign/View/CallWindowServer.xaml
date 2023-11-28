@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatDesign.View"
         mc:Ignorable="d"
+        Icon="../Assets/Logo.png"
         Closing="Window_Closing"
         Title="CallWindowServer" Height="450" Width="400">
     <Grid>

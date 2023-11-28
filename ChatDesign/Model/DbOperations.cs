@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using Data;
+using System.Windows;
 
 namespace ChatDesign.Model
 {
@@ -46,6 +48,32 @@ namespace ChatDesign.Model
 
                     return matchingUserCount > 0; // If count is greater than 0, user is authenticated
                 }
+            }
+        }
+
+        // Add Message to DataBase 
+        public static void AddMessage(MessagesDataBase message)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(DbOperations.GetConnectionString()))
+                {
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand("INSERT INTO Message (ChatID, SenderId, MessageText, Timestamp) VALUES (@ChatID, @SenderId, @MessageText, @Timestamp)", connection))
+                    {
+                        command.Parameters.AddWithValue("@ChatID", message.ReceiverId);
+                        command.Parameters.AddWithValue("@SenderId", message.SenderId);
+                        command.Parameters.AddWithValue("@MessageText", message.Content);
+                        command.Parameters.AddWithValue("@Timestamp", DateTime.Now);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding message to the database: {ex.Message}");
             }
         }
 
