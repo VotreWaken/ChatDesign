@@ -507,7 +507,7 @@ namespace ChatDesign.View
                                 {
                                     App.Current.Dispatcher.Invoke(() =>
                                     {
-                                        CallWindowServer CallWindow = new();
+                                        CallWindowServer CallWindow = new CallWindowServer(username,UserAvatar);
                                         CallWindow.Show();
                                     });
                                 }

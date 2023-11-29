@@ -1,7 +1,12 @@
-﻿using System;
+﻿using ChatDesign.Model;
+using Data;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -25,11 +31,90 @@ namespace ChatDesign.View
     public partial class CallWindowServer : Window
     {
         public SynchronizationContext uiContext;
-        public CallWindowServer()
+
+        // UI GET USER INFORMATION 
+        void GetConnectedUserName()
+        {
+
+        }
+        void GetConnectedUserImage()
+        {
+
+        }
+
+        void GetUserImage()
+        {
+
+        }
+
+        void GetUserName()
+        {
+
+        }
+        private ObservableCollection<CustomItem> contacts;
+
+        public ObservableCollection<CustomItem> Contacts
+        {
+            get
+            {
+                if (contacts == null)
+                {
+                    contacts = new ObservableCollection<CustomItem>();
+                }
+                return contacts;
+            }
+        }
+
+        void InitUi(string name, ImageSource image)
+        {
+            MessageBox.Show(name);
+            MessageBox.Show(image.ToString());
+            Contacts.Add(new CustomItem { ImagePath = image, Title = name });
+            MessageBox.Show(Contacts.Count.ToString());
+        }
+        // Image Handler
+        #region Image Handler 
+        [DllImport("gdi32.dll", EntryPoint = "DeleteObject")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool DeleteObject([In] IntPtr hObject);
+
+        public ImageSource ImageSourceFromBitmap(Bitmap bmp)
+        {
+
+            var handle = bmp.GetHbitmap();
+            try
+            {
+                return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            }
+            finally { DeleteObject(handle); }
+        }
+
+        private static readonly ImageConverter _imageConverter = new ImageConverter();
+        public static Bitmap GetImageFromByteArray(byte[] byteArray)
+        {
+
+            Bitmap bm = (Bitmap)_imageConverter.ConvertFrom(byteArray);
+
+            if (bm != null && (bm.HorizontalResolution != (int)bm.HorizontalResolution ||
+                               bm.VerticalResolution != (int)bm.VerticalResolution))
+            {
+                // Correct a strange glitch that has been observed in the test program when converting 
+                //  from a PNG file image created by CopyImageToByteArray() - the dpi value "drifts" 
+                //  slightly away from the nominal integer value
+                bm.SetResolution((int)(bm.HorizontalResolution + 0.5f),
+                                 (int)(bm.VerticalResolution + 0.5f));
+            }
+
+            return bm;
+        }
+        #endregion
+        public CallWindowServer(string name, ImageSource image)
         {
             InitializeComponent();
             InitComboboxes();
             uiContext = SynchronizationContext.Current;
+            DataContext = this;
+            InitUi(name, image);
             //m_Player.PlayFile("AbletonAudio.wav", Sound.SelectedItem.ToString());
             //m_Player.PlayFile("qqq.mp3", Sound.SelectedItem.ToString());
             LoadConfig();
@@ -998,8 +1083,6 @@ namespace ChatDesign.View
             {
                 Console.WriteLine(ex.Message);
             }
-
-
         }
         private void InitComboboxes()
         {

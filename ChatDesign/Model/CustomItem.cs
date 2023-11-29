@@ -8,7 +8,7 @@ using System.Windows.Media;
 
 namespace ChatDesign.Model
 {
-    internal class CustomItem
+    public class CustomItem
     {
         public int Id { get; set; }
         public string Title { get; set; }

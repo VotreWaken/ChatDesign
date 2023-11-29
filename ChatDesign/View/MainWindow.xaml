@@ -390,7 +390,7 @@
                 </Grid>
             </Border>
         </Grid>
-        <Grid>
+        <Grid Visibility="Hidden">
             <Grid x:Name="nav_pnl"
                     HorizontalAlignment="Left"
                     Width="65"
