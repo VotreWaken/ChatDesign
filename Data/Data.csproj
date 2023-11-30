@@ -47,6 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CallMessage.cs" />
+    <Compile Include="UserInfo.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageId.cs" />
     <Compile Include="MessagesDataBase.cs" />

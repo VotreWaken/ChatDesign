@@ -108,15 +108,27 @@ namespace Server
                         if (AudioCallServer == false)
                         {
                             User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
-                            SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "1" }, chatRoomName);
-                            //Broadcast(new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "1" }, chatRoomName);
-                            Console.WriteLine($"Joined to Audio Call: {user.Username}"); AudioCallServer = true;
+                            Console.WriteLine("Server Started" + message.Reciever.Username);
+
+                            // Отправить сообщение о звонке с информацией о пользователях
+                            SendMessageToUser(user, receiver, new CallMessage(
+                                user,
+                                "0", // Здесь устанавливаем "0" в MessageString для сигнала начала звонка
+                                chatRooms[chatRoomName].Select(p => new UserInfo { ImageBytes = p.GetUserImageBytes(), Username = p.Username }).ToList()
+                            ), chatRoomName);
+
+                            Console.WriteLine("Name: " + receiver.Username);
+                            Console.WriteLine("Image: " + receiver.ImageBytes);
+                            Console.WriteLine($"Joined to Audio Call: {user.Username}");
+                            AudioCallServer = true;
                         }
                         else
                         {
+                            Console.WriteLine("Client Started" + message.Reciever.Username);
                             User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
+
+                            // Отправить сообщение о звонке с сигналом начала аудиозвонка
                             SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "0" }, chatRoomName);
-                            //Broadcast(new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "0" }, chatRoomName);
                             Console.WriteLine($"Started Audio Call: {user.Username}");
                         }
                     }

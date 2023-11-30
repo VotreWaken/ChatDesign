@@ -282,7 +282,7 @@ namespace ChatDesign.View
                 WarningVisibility = Visibility.Visible;
                 SendIsEnable = true;
                 user.Username = Username;
-
+                user.ImageBytes = DbOperations.GetUserImage(Username);
                 GetData();
             }));
 
@@ -395,8 +395,8 @@ namespace ChatDesign.View
                 }
                 catch (Exception ex)
                 {
-                    return;
-                    //MessageBox.Show(ex.Message);
+                    //return;
+                    MessageBox.Show(ex.Message);
                 }
             }));
         }
@@ -493,45 +493,36 @@ namespace ChatDesign.View
                     }
                     else if (message.ServerMessage == ServerMessage.CallMessage)
                     {
+                        Console.WriteLine($"Received CallMessage from {message.Sender.Username}");
+
                         App.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " Started Audio Call", IsSender = true });
                             string imagePath = "/Assets/GreenCall.png";
-                            BitmapImage bitmapImage = new BitmapImage();
-                            bitmapImage.BeginInit();
-                            bitmapImage.UriSource = new Uri(imagePath, UriKind.RelativeOrAbsolute);
-                            bitmapImage.EndInit();
-                            if (message.MessageString == "0")
-                            {
-                                try
-                                {
-                                    App.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        CallWindowServer CallWindow = new CallWindowServer(username,UserAvatar);
-                                        CallWindow.Show();
-                                    });
-                                }
-                                catch (Exception)
-                                {
+                            BitmapImage bitmapImage = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute));
 
+                            try
+                            {
+                                if (message is CallMessage callMessage && callMessage.MessageString == "0")
+                                {
+                                    Console.WriteLine($"Starting CallWindowServer for {username}");
+                                    CallWindowServer callWindowServer = new CallWindowServer(username, UserAvatar, callMessage.Participants);
+                                    callWindowServer.Show();
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Starting CallWindowClient");
+                                    CallWindow callWindowClient = new CallWindow();
+                                    callWindowClient.Show();
                                 }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                try
-                                {
-                                    App.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        CallWindow callWindowClient = new();
-                                        callWindowClient.Show();
-                                    });
-                                }
-                                catch (Exception)
-                                {
-
-                                }
+                                Console.WriteLine($"Error: {ex.Message}");
+                                MessageBox.Show(ex.Message);
                             }
-                            // Set the CallImage property to the loaded image.
+
+                            // Установите свойство CallImage для загруженного изображения.
                             CallImage = bitmapImage;
                         }));
                     }

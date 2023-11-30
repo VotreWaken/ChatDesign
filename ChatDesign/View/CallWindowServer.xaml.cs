@@ -67,10 +67,7 @@ namespace ChatDesign.View
 
         void InitUi(string name, ImageSource image)
         {
-            MessageBox.Show(name);
-            MessageBox.Show(image.ToString());
             Contacts.Add(new CustomItem { ImagePath = image, Title = name });
-            MessageBox.Show(Contacts.Count.ToString());
         }
         // Image Handler
         #region Image Handler 
@@ -108,15 +105,23 @@ namespace ChatDesign.View
             return bm;
         }
         #endregion
-        public CallWindowServer(string name, ImageSource image)
+        public CallWindowServer(string name, ImageSource image, List<UserInfo> participants)
         {
             InitializeComponent();
             InitComboboxes();
             uiContext = SynchronizationContext.Current;
             DataContext = this;
-            InitUi(name, image);
+            //InitUi(name, image);
             //m_Player.PlayFile("AbletonAudio.wav", Sound.SelectedItem.ToString());
             //m_Player.PlayFile("qqq.mp3", Sound.SelectedItem.ToString());
+            MessageBox.Show("Count: " + participants.Count.ToString());
+            // Work Tyt ДОДЕЛАТЬ 
+            foreach (var participant in participants)
+            {
+                //Bitmap bitmap = GetImageFromByteArray(participant.ImageBytes);
+                Contacts.Add(new CustomItem { Title = participant.Username });
+            }
+
             LoadConfig();
             InitJitterBufferClientRecording();
             InitJitterBufferClientPlaying();
@@ -257,7 +262,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void OnClientConfigReceived(Object sender, Byte[] data)
@@ -290,7 +295,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void StartRecordingFromSounddevice_Client()
@@ -338,7 +343,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -410,8 +415,9 @@ namespace ChatDesign.View
                                     //Absenden
                                     client.Send(m_PrototolClient.ToBytes(rtpBytes));
                                 }
-                                catch (Exception)
+                                catch (Exception ex)
                                 {
+                                    MessageBox.Show(ex.Message);
                                 }
                             }
                         }
@@ -420,6 +426,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 System.Diagnostics.StackFrame sf = new System.Diagnostics.StackFrame(true);
                 //ShowError(LabelServer, String.Format("Exception: {0} StackTrace: {1}. FileName: {2} Method: {3} Line: {4}", ex.Message, ex.StackTrace, sf.GetFileName(), sf.GetMethod(), sf.GetFileLineNumber()));
             }
@@ -460,6 +467,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 System.Diagnostics.StackFrame sf = new System.Diagnostics.StackFrame(true);
                 //ShowError(LabelClient, String.Format("Exception: {0} StackTrace: {1}. FileName: {2} Method: {3} Line: {4}", ex.Message, ex.StackTrace, sf.GetFileName(), sf.GetMethod(), sf.GetFileLineNumber()));
             }
@@ -498,6 +506,8 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
+
                 System.Diagnostics.StackFrame sf = new System.Diagnostics.StackFrame(true);
                 //ShowError(LabelClient, String.Format("Exception: {0} StackTrace: {1}. FileName: {2} Method: {3} Line: {4}", ex.Message, ex.StackTrace, sf.GetFileName(), sf.GetMethod(), sf.GetFileLineNumber()));
             }
@@ -581,7 +591,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void OnServerClientConnected(NF.ServerThread st)
@@ -600,7 +610,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -638,7 +648,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-
+                MessageBox.Show(ex.Message);
             }
         }
         private void StopTimerMixed()
@@ -730,7 +740,7 @@ namespace ChatDesign.View
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    MessageBox.Show(ex.Message);
                 }
             }
         }
@@ -799,7 +809,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -843,6 +853,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
@@ -860,7 +871,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -892,6 +903,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 //MessageBox.Show(ex.Message, "Fehler bei der Eingabe", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
@@ -969,7 +981,8 @@ namespace ChatDesign.View
 
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("FormMain.cs | OnTimerSendMixedDataToAllClients() | {0}", ex.Message));
+                MessageBox.Show(ex.Message);
+                // Console.WriteLine(String.Format("FormMain.cs | OnTimerSendMixedDataToAllClients() | {0}", ex.Message));
                 m_TimerProgressBarPlayingClient.Stop();
             }
         }
@@ -1055,7 +1068,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1081,7 +1094,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void InitComboboxes()
@@ -1173,7 +1186,7 @@ namespace ChatDesign.View
             catch (Exception ex)
             {
                 m_Client = null;
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1203,7 +1216,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1231,7 +1244,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                //ShowError(LabelClient, ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1280,7 +1293,8 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
+                // System.Diagnostics.Debug.WriteLine(ex.Message);
             }
         }
 
@@ -1401,7 +1415,8 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("FormMain.cs | OnTimerProgressPlayingClient() | {0}", ex.Message));
+                MessageBox.Show(ex.Message);
+                // Console.WriteLine(String.Format("FormMain.cs | OnTimerProgressPlayingClient() | {0}", ex.Message));
                 m_TimerProgressBarPlayingClient.Stop();
             }
         }
@@ -1594,7 +1609,7 @@ namespace ChatDesign.View
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            MessageBox.Show(ex.Message);
                             IsInitialized = false;
                         }
                     }
@@ -1632,7 +1647,8 @@ namespace ChatDesign.View
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(String.Format("MainWindow.cs | OnJitterBufferDataAvailable() | {0}", ex.Message));
+                    MessageBox.Show(ex.Message);
+                    // Console.WriteLine(String.Format("MainWindow.cs | OnJitterBufferDataAvailable() | {0}", ex.Message));
                 }
             }
         }
