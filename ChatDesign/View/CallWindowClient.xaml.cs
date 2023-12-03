@@ -172,7 +172,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void OnClientConfigReceived(Object sender, Byte[] data)
@@ -199,13 +199,13 @@ namespace ChatDesign.View
                                 StartPlayingToSounddevice_Client();
                                 StartRecordingFromSounddevice_Client();
                             });
-                            break;
+                            break;  
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void StartRecordingFromSounddevice_Client()
@@ -496,7 +496,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
         private void OnServerClientConnected(NF.ServerThread st)
@@ -515,7 +515,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -646,7 +646,7 @@ namespace ChatDesign.View
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    MessageBox.Show(ex.Message);
                 }
             }
         }
@@ -885,7 +885,7 @@ namespace ChatDesign.View
 
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("FormMain.cs | OnTimerSendMixedDataToAllClients() | {0}", ex.Message));
+                MessageBox.Show(ex.Message);
                 m_TimerProgressBarPlayingClient.Stop();
             }
         }
@@ -997,7 +997,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
 
 
@@ -1258,7 +1258,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -1315,7 +1315,7 @@ namespace ChatDesign.View
             }
             catch (Exception ex)
             {
-                Console.WriteLine(String.Format("FormMain.cs | OnTimerProgressPlayingClient() | {0}", ex.Message));
+                MessageBox.Show(ex.Message);
                 m_TimerProgressBarPlayingClient.Stop();
             }
         }
@@ -1508,7 +1508,7 @@ namespace ChatDesign.View
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            MessageBox.Show(ex.Message);
                             IsInitialized = false;
                         }
                     }
@@ -1546,7 +1546,7 @@ namespace ChatDesign.View
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(String.Format("MainWindow.cs | OnJitterBufferDataAvailable() | {0}", ex.Message));
+                    MessageBox.Show(ex.Message);
                 }
             }
         }

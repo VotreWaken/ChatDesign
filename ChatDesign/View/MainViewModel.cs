@@ -493,8 +493,6 @@ namespace ChatDesign.View
                     }
                     else if (message.ServerMessage == ServerMessage.CallMessage)
                     {
-                        Console.WriteLine($"Received CallMessage from {message.Sender.Username}");
-
                         App.Current.Dispatcher.Invoke(new Action(() =>
                         {
                             MessagessItems.Add(new ChatItem() { Sender = message.Sender.Username, Content = " Started Audio Call", IsSender = true });
@@ -503,22 +501,23 @@ namespace ChatDesign.View
 
                             try
                             {
-                                if (message is CallMessage callMessage && callMessage.MessageString == "0")
+                                if (message.MessageString == "0")
                                 {
-                                    Console.WriteLine($"Starting CallWindowServer for {username}");
-                                    CallWindowServer callWindowServer = new CallWindowServer(username, UserAvatar, callMessage.Participants);
-                                    callWindowServer.Show();
+                                    foreach (var item in ((CallMessage)message).Participants)
+                                    {
+                                        var tempUser = new Data.User { Username = item.Username };
+                                    }
+                                    CallWindowServer callWindowServer = new CallWindowServer(username, UserAvatar, ((CallMessage)message).Participants);
+                                    callWindowServer.InitDelegates(); callWindowServer.Show();
                                 }
                                 else
                                 {
-                                    Console.WriteLine("Starting CallWindowClient");
                                     CallWindow callWindowClient = new CallWindow();
                                     callWindowClient.Show();
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Error: {ex.Message}");
                                 MessageBox.Show(ex.Message);
                             }
 
@@ -529,7 +528,7 @@ namespace ChatDesign.View
                 }
                 catch (Exception e)
                 {
-                    return; //MessageBox.Show(e.Message); 
+                    MessageBox.Show(e.Message); 
                 }
             }
         }

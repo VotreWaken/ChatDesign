@@ -116,7 +116,7 @@ namespace Server
                                 "0", // Здесь устанавливаем "0" в MessageString для сигнала начала звонка
                                 chatRooms[chatRoomName].Select(p => new UserInfo { ImageBytes = p.GetUserImageBytes(), Username = p.Username }).ToList()
                             ), chatRoomName);
-
+                            user.Connect(user);
                             Console.WriteLine("Name: " + receiver.Username);
                             Console.WriteLine("Image: " + receiver.ImageBytes);
                             Console.WriteLine($"Joined to Audio Call: {user.Username}");
@@ -128,7 +128,7 @@ namespace Server
                             User receiver = GetUserByName(message.Reciever.Username, chatRoomName);
 
                             // Отправить сообщение о звонке с сигналом начала аудиозвонка
-                            SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "0" }, chatRoomName);
+                            SendMessageToUser(user, receiver, new Message() { ServerMessage = ServerMessage.CallMessage, Sender = user, MessageString = "1" }, chatRoomName);
                             Console.WriteLine($"Started Audio Call: {user.Username}");
                         }
                     }

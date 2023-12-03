@@ -15,7 +15,35 @@
             <RowDefinition Height="0.2*"/>
             <RowDefinition Height="0.3*"/>
         </Grid.RowDefinitions>
-        <Button Click="Button_Click_1" Width="120" Height="40">Start Client</Button>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="0.2*"/>
+                <RowDefinition Height="0.2*"/>
+            </Grid.RowDefinitions>
+            <ListBox Grid.Row="0" ItemsSource="{Binding Contacts}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding ImagePath}" Height="0" Width="0"/>
+                            <Border Height="40" Width="40" CornerRadius="20">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="{Binding ImagePath}"/>
+                                </Border.Background>
+                            </Border>
+                            <Label Content="{Binding Title}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="20"/>
+                    </Style>
+                </ListBox.Resources>
+
+            </ListBox>
+            <Button Grid.Row="1" Click="Button_Click_1" Width="120" Height="40">Start Client</Button>
+        </Grid>
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">
                 <ComboBox Name="Mic" Width="180" Height="20"></ComboBox>

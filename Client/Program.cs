@@ -347,7 +347,7 @@ namespace NF
         /// <param name="client"></param>
         private void OnConnected(NF.TCPClient client, string info)
         {
-
+            
         }
         /// <summary>
         /// Wenn sich ein Client getrennt hat

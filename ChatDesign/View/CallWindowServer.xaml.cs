@@ -105,24 +105,55 @@ namespace ChatDesign.View
             return bm;
         }
         #endregion
+        private List<UserInfo> participants;
+        public void InitDelegates()
+        {
+            try
+            {
+                foreach (var participant in participants)
+                {
+                    var tempUser = new Data.User { Username = participant.Username };
+                    // Contacts.Add(new CustomItem { Title = participant.Username });
+                    tempUser.OnUserConnected += (sender, args) =>
+                    {
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            Contacts.Add(new CustomItem { Title = args.ConnectedUser.Username });
+                            MessageBox.Show($"{args.ConnectedUser.Username} connected!");
+                        });
+                    };
+
+                    tempUser.OnUserDisconnected += (sender, args) =>
+                    {
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            var userToRemove = Contacts.FirstOrDefault(c => c.Title == args.ConnectedUser.Username);
+                            if (userToRemove != null)
+                            {
+                                Contacts.Remove(userToRemove);
+                            }
+                            MessageBox.Show($"{args.ConnectedUser.Username} disconnected!");
+                        });
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
         public CallWindowServer(string name, ImageSource image, List<UserInfo> participants)
         {
             InitializeComponent();
             InitComboboxes();
+            this.participants = participants;
             uiContext = SynchronizationContext.Current;
             DataContext = this;
+            InitDelegates();
             //InitUi(name, image);
             //m_Player.PlayFile("AbletonAudio.wav", Sound.SelectedItem.ToString());
             //m_Player.PlayFile("qqq.mp3", Sound.SelectedItem.ToString());
             MessageBox.Show("Count: " + participants.Count.ToString());
-            // Work Tyt ДОДЕЛАТЬ 
-            foreach (var participant in participants)
-            {
-                //Bitmap bitmap = GetImageFromByteArray(participant.ImageBytes);
-                Contacts.Add(new CustomItem { Title = participant.Username });
-            }
-
-            LoadConfig();
             InitJitterBufferClientRecording();
             InitJitterBufferClientPlaying();
             InitJitterBufferServerRecording();
@@ -578,6 +609,11 @@ namespace ChatDesign.View
                 {
                     //Alle Daten freigeben
                     ServerThreadData data = m_DictionaryServerDatas[st];
+                    MessageBox.Show("Client Disconnect");
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        DeleteUpdateListBox(st);
+                    });
                     data.Dispose();
                     lock (LockerDictionary)
                     {
@@ -594,17 +630,35 @@ namespace ChatDesign.View
                 MessageBox.Show(ex.Message);
             }
         }
+
+        private void AddUpdateListBox(NF.ServerThread st)
+        {
+            Contacts.Add(new CustomItem { Title = st.Client.Client.RemoteEndPoint.ToString() });
+        }
+
+        private void DeleteUpdateListBox(NF.ServerThread st)
+        {
+            var itemToRemove = Contacts.FirstOrDefault(item => item.Title == st.Client.Client.RemoteEndPoint.ToString());
+            if (itemToRemove != null)
+            {
+                Contacts.Remove(itemToRemove);
+            }
+        }
         private void OnServerClientConnected(NF.ServerThread st)
         {
             try
             {
+                MessageBox.Show("Client Connected to Audio " + st.Client.Client.RemoteEndPoint.ToString());
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    AddUpdateListBox(st);
+                });
                 //ServerThread Daten erstellen
                 ServerThreadData data = new ServerThreadData();
                 //Initialisieren
                 data.Init(st, m_Config.SoundOutputDeviceNameServer, m_Config.SamplesPerSecondServer, m_Config.BitsPerSampleServer, m_Config.ChannelsServer, m_SoundBufferCount, m_Config.JitterBufferCountServer, m_Milliseconds);
                 //Hinzufügen
                 m_DictionaryServerDatas[st] = data;
-
                 //Konfiguration senden
                 SendConfigurationToClient(data);
             }
@@ -1330,20 +1384,27 @@ namespace ChatDesign.View
         }
         private void OnClientDisconnected(NF.TCPClient client, string info)
         {
-            //Abspielen beenden
-            StopPlayingToSounddevice_Client();
-            //Streamen von Sounddevice beenden
-            StopRecordingFromSounddevice_Client();
-
-            if (m_Client != null)
+            try
             {
-                m_Client.ClientConnected -= new NF.TCPClient.DelegateConnection(OnClientConnected);
-                m_Client.ClientDisconnected -= new NF.TCPClient.DelegateConnection(OnClientDisconnected);
-                m_Client.ExceptionAppeared -= new NF.TCPClient.DelegateException(OnClientExceptionAppeared);
-                m_Client.DataReceived -= new NF.TCPClient.DelegateDataReceived(OnClientDataReceived);
-                //ShowMessage(LabelClient, String.Format("Client disconnected {0}", ""));
-            }
+                //Abspielen beenden
+                StopPlayingToSounddevice_Client();
+                //Streamen von Sounddevice beenden
+                StopRecordingFromSounddevice_Client();
 
+                if (m_Client != null)
+                {
+                    m_Client.ClientConnected -= new NF.TCPClient.DelegateConnection(OnClientConnected);
+                    m_Client.ClientDisconnected -= new NF.TCPClient.DelegateConnection(OnClientDisconnected);
+                    m_Client.ExceptionAppeared -= new NF.TCPClient.DelegateException(OnClientExceptionAppeared);
+                    m_Client.DataReceived -= new NF.TCPClient.DelegateDataReceived(OnClientDataReceived);
+                    //ShowMessage(LabelClient, String.Format("Client disconnected {0}", ""));
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
 
         }
 
@@ -1401,8 +1462,8 @@ namespace ChatDesign.View
         }
         private void OnClientConnected(NF.TCPClient client, string info)
         {
-            //ShowMessage(LabelClient, String.Format("Client connected {0}", ""));
-            //ShowClientConnected();
+            // ShowMessage(LabelClient, String.Format("Client connected {0}", ""));
+            // ShowClientConnected();
         }
         private void OnTimerProgressPlayingClient(Object obj, EventArgs e)
         {

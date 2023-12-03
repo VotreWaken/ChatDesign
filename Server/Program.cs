@@ -105,7 +105,7 @@ namespace NF
                 // Haupt-TCPServer-Thread initialisieren und starten
                 m_ThreadMainServer = new Thread(new ThreadStart(Run));
                 m_ThreadMainServer.Start();
-
+                
                 //State setzen
                 this.m_State = ListenerState.Started;
             }
@@ -346,7 +346,7 @@ namespace NF
                         //Nur gelesene Bytes ermitteln
                         Byte[] data = new byte[bytesRead];
                         System.Array.Copy(ReadBuffer, 0, data, 0, bytesRead);
-
+                        
                         //Event abschicken
                         DataReceived(this, data);
                         //Weiter lesen
