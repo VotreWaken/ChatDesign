@@ -508,7 +508,7 @@ namespace ChatDesign.View
                                         var tempUser = new Data.User { Username = item.Username };
                                     }
                                     CallWindowServer callWindowServer = new CallWindowServer(username, UserAvatar, ((CallMessage)message).Participants);
-                                    callWindowServer.InitDelegates(); callWindowServer.Show();
+                                    callWindowServer.Show();
                                 }
                                 else
                                 {

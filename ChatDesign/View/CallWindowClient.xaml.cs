@@ -989,7 +989,8 @@ namespace ChatDesign.View
                 //Client beenden
                 DisconnectClient();
                 //Server beenden
-                StopServer();
+                // HERE 
+                // StopServer();
 
                 m_Player.Close();
                 //Speichern

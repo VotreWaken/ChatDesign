@@ -122,6 +122,7 @@ namespace NF
         /// <summary>
         /// Run
         /// </summary>
+
         private void Run()
         {
             while (true)
@@ -226,6 +227,7 @@ namespace NF
         /// <summary>
         /// Beenden des Servers
         /// </summary>
+
         public void Stop()
         {
             try
@@ -233,6 +235,9 @@ namespace NF
                 if (m_ThreadMainServer != null)
                 {
                     // Haupt-TCPServer-Thread stoppen
+                    // HERE ERROR 
+                    // m_ThreadMainServer.Abort();
+
                     // m_ThreadMainServer.Abort();
                     Environment.Exit(Environment.ExitCode);
                     System.Threading.Thread.Sleep(100);

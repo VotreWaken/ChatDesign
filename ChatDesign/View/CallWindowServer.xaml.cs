@@ -106,42 +106,7 @@ namespace ChatDesign.View
         }
         #endregion
         private List<UserInfo> participants;
-        public void InitDelegates()
-        {
-            try
-            {
-                foreach (var participant in participants)
-                {
-                    var tempUser = new Data.User { Username = participant.Username };
-                    // Contacts.Add(new CustomItem { Title = participant.Username });
-                    tempUser.OnUserConnected += (sender, args) =>
-                    {
-                        App.Current.Dispatcher.Invoke(() =>
-                        {
-                            Contacts.Add(new CustomItem { Title = args.ConnectedUser.Username });
-                            MessageBox.Show($"{args.ConnectedUser.Username} connected!");
-                        });
-                    };
 
-                    tempUser.OnUserDisconnected += (sender, args) =>
-                    {
-                        App.Current.Dispatcher.Invoke(() =>
-                        {
-                            var userToRemove = Contacts.FirstOrDefault(c => c.Title == args.ConnectedUser.Username);
-                            if (userToRemove != null)
-                            {
-                                Contacts.Remove(userToRemove);
-                            }
-                            MessageBox.Show($"{args.ConnectedUser.Username} disconnected!");
-                        });
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
         public CallWindowServer(string name, ImageSource image, List<UserInfo> participants)
         {
             InitializeComponent();
@@ -149,11 +114,10 @@ namespace ChatDesign.View
             this.participants = participants;
             uiContext = SynchronizationContext.Current;
             DataContext = this;
-            InitDelegates();
+
             //InitUi(name, image);
             //m_Player.PlayFile("AbletonAudio.wav", Sound.SelectedItem.ToString());
             //m_Player.PlayFile("qqq.mp3", Sound.SelectedItem.ToString());
-            MessageBox.Show("Count: " + participants.Count.ToString());
             InitJitterBufferClientRecording();
             InitJitterBufferClientPlaying();
             InitJitterBufferServerRecording();
@@ -563,21 +527,24 @@ namespace ChatDesign.View
                 {
                     if (m_Config.IPAddressServer.Length > 0 && m_Config.PortServer > 0)
                     {
-                        m_Server = new NF.TCPServer();
-                        m_Server.ClientConnected += new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
-                        m_Server.ClientDisconnected += new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
-                        m_Server.DataReceived += new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
-                        m_Server.Start(m_Config.IPAddressServer, m_Config.PortServer);
-                        MessageBox.Show("Start");
-                        //Je nach Server Status
-                        if (m_Server.State == NF.TCPServer.ListenerState.Started)
+                        serverThread = new Thread(() =>
                         {
+                            m_Server = new NF.TCPServer();
+                            m_Server.ClientConnected += new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
+                            m_Server.ClientDisconnected += new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
+                            m_Server.DataReceived += new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
+                            m_Server.Start(m_Config.IPAddressServer, m_Config.PortServer);
+                            MessageBox.Show("Start");
+                            //Je nach Server Status
+                            if (m_Server.State == NF.TCPServer.ListenerState.Started)
+                            {
 
-                        }
-                        else
-                        {
+                            }
+                            else
+                            {
 
-                        }
+                            }
+                        }); serverThread.Start();
                     }
                 }
             }
@@ -740,12 +707,12 @@ namespace ChatDesign.View
                 MessageBox.Show(ex.Message);
             }
         }
-
+        private Thread serverThread;
         private void StopServer()
         {
             try
             {
-                if (IsServerRunning == true)
+                if (serverThread != null && serverThread.IsAlive)
                 {
 
                     //Player beenden
@@ -756,6 +723,7 @@ namespace ChatDesign.View
                     m_Server.ClientConnected -= new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
                     m_Server.ClientDisconnected -= new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
                     m_Server.DataReceived -= new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
+                    serverThread = null;
                 }
 
                 //Je nach Server Status
@@ -1138,9 +1106,10 @@ namespace ChatDesign.View
                 //Streamen von Sounddevice beenden
                 StopRecordingFromSounddevice_Client();
                 //Client beenden
-                DisconnectClient();
+                // HERE
+                // DisconnectClient();
                 //Server beenden
-                StopServer();
+                 StopServer();
 
                 m_Player.Close();
                 //Speichern
