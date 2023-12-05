@@ -527,24 +527,21 @@ namespace ChatDesign.View
                 {
                     if (m_Config.IPAddressServer.Length > 0 && m_Config.PortServer > 0)
                     {
-                        serverThread = new Thread(() =>
+                        m_Server = new NF.TCPServer();
+                        m_Server.ClientConnected += new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
+                        m_Server.ClientDisconnected += new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
+                        m_Server.DataReceived += new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
+                        m_Server.Start(m_Config.IPAddressServer, m_Config.PortServer);
+                        MessageBox.Show("Start");
+                        //Je nach Server Status
+                        if (m_Server.State == NF.TCPServer.ListenerState.Started)
                         {
-                            m_Server = new NF.TCPServer();
-                            m_Server.ClientConnected += new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
-                            m_Server.ClientDisconnected += new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
-                            m_Server.DataReceived += new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
-                            m_Server.Start(m_Config.IPAddressServer, m_Config.PortServer);
-                            MessageBox.Show("Start");
-                            //Je nach Server Status
-                            if (m_Server.State == NF.TCPServer.ListenerState.Started)
-                            {
 
-                            }
-                            else
-                            {
+                        }
+                        else
+                        {
 
-                            }
-                        }); serverThread.Start();
+                        }
                     }
                 }
             }
@@ -707,12 +704,12 @@ namespace ChatDesign.View
                 MessageBox.Show(ex.Message);
             }
         }
-        private Thread serverThread;
+
         private void StopServer()
         {
             try
             {
-                if (serverThread != null && serverThread.IsAlive)
+                if (IsServerRunning == true)
                 {
 
                     //Player beenden
@@ -723,7 +720,6 @@ namespace ChatDesign.View
                     m_Server.ClientConnected -= new NF.TCPServer.DelegateClientConnected(OnServerClientConnected);
                     m_Server.ClientDisconnected -= new NF.TCPServer.DelegateClientDisconnected(OnServerClientDisconnected);
                     m_Server.DataReceived -= new NF.TCPServer.DelegateDataReceived(OnServerDataReceived);
-                    serverThread = null;
                 }
 
                 //Je nach Server Status
@@ -1109,7 +1105,7 @@ namespace ChatDesign.View
                 // HERE
                 // DisconnectClient();
                 //Server beenden
-                 StopServer();
+                StopServer();
 
                 m_Player.Close();
                 //Speichern
