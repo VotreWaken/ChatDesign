@@ -18,7 +18,7 @@ namespace Server
 
         static void Main(string[] args)
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse("26.114.170.202"), 23016);
             TcpListener server = new TcpListener(ep);
             server.Start();
 

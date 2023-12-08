@@ -42,7 +42,20 @@
                 </ListBox.Resources>
 
             </ListBox>
-            <Button Grid.Row="1" Click="Button_Click_1" Width="120" Height="40">Start Client</Button>
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <Button Grid.Row="1" Click="Button_Click_1" Width="120" Height="40">Start Client</Button>
+            <Border Cursor="Hand" Grid.Column="0" Grid.Row="0" Height="40" Width="40" CornerRadius="20" ClipToBounds="True">
+                <Border.Background>
+                    <ImageBrush Stretch="Fill" x:Name="UserAvatar" ImageSource="{Binding Path=UserAvatar}"/>
+                </Border.Background>
+                <Ellipse Width="20" Height="20" Margin="22 22 0 0" Stroke="White" StrokeThickness="3">
+                    <Ellipse.Fill>
+                        <SolidColorBrush Color="#3B9D51"/>
+                    </Ellipse.Fill>
+                </Ellipse>
+            </Border>
+            <Label x:Name="Username" Content="{Binding Username}" Cursor="Hand" Grid.Column="1" HorizontalAlignment="Left" Width="150"/>
+            </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="10">

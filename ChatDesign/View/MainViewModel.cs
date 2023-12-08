@@ -326,9 +326,15 @@ namespace ChatDesign.View
                         }
                     });
                 }
-                else
+                else if(searchText == string.Empty)
                 {
-
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Contacts.Clear(); foreach (var item in originalItems)
+                        {
+                            Contacts.Add(item);
+                        }
+                    });
                 }
             }
             ));
@@ -375,7 +381,7 @@ namespace ChatDesign.View
                             }
                         });
 
-                        ep = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 23016);
+                        ep = new IPEndPoint(IPAddress.Parse("26.114.170.202"), 23016);
                         user = new Data.User();
 
                         Users = new ObservableCollection<string>();
@@ -512,7 +518,7 @@ namespace ChatDesign.View
                                 }
                                 else
                                 {
-                                    CallWindow callWindowClient = new CallWindow();
+                                    CallWindow callWindowClient = new CallWindow(username, UserAvatar);
                                     callWindowClient.Show();
                                 }
                             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,10 +68,11 @@ namespace NF
             {
                 try
                 {
+                    
                     TcpClient client = await m_tcpip.AcceptTcpClientAsync();
 
                     ServerThread st = new ServerThread(client);
-
+                    
                     st.DataReceived += OnDataReceived;
                     st.ClientDisconnected += OnClientDisconnected;
 
@@ -130,7 +132,8 @@ namespace NF
             {
                 m_threads.Add(st);
             }
-
+            // st.Send(Encoding.UTF8.GetBytes(ServerName));  // Отправить имя сервера
+            // st.Send(ServerPhoto);  // Отправить фотографию сервера в виде byte[]
             if (ClientConnected != null)
             {
                 ClientConnected(st);

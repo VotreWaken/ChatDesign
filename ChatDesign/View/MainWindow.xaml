@@ -154,7 +154,7 @@
                 </TextBox>
             </Grid>
 
-
+    
             <ListBox Name="Contacts" Grid.Row="1" Grid.Column="1"  SelectedItem="{Binding SelectedContact}" lb:ListBoxDoubleClickBehavior.DoubleClickCommand="{Binding ContactDoubleClickCommand}" ItemsSource="{Binding Contacts}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>

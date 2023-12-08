@@ -595,9 +595,10 @@ namespace ChatDesign.View
             }
         }
 
-        private void AddUpdateListBox(NF.ServerThread st)
+        private void AddUpdateListBox(string name, byte[] img)
         {
-            Contacts.Add(new CustomItem { Title = st.Client.Client.RemoteEndPoint.ToString() });
+            
+            Contacts.Add(new CustomItem { Title = name, ImagePath = ImageSourceFromBitmap(GetImageFromByteArray(img)) });
         }
 
         private void DeleteUpdateListBox(NF.ServerThread st)
@@ -608,15 +609,14 @@ namespace ChatDesign.View
                 Contacts.Remove(itemToRemove);
             }
         }
+
+
         private void OnServerClientConnected(NF.ServerThread st)
         {
             try
             {
                 MessageBox.Show("Client Connected to Audio " + st.Client.Client.RemoteEndPoint.ToString());
-                App.Current.Dispatcher.Invoke(() =>
-                {
-                    AddUpdateListBox(st);
-                });
+
                 //ServerThread Daten erstellen
                 ServerThreadData data = new ServerThreadData();
                 //Initialisieren
@@ -624,7 +624,34 @@ namespace ChatDesign.View
                 //Hinzufügen
                 m_DictionaryServerDatas[st] = data;
                 //Konfiguration senden
+
+                byte[] nameLengthBytes = new byte[4];
+                st.Client.Client.Receive(nameLengthBytes);
+                int nameLength = BitConverter.ToInt32(nameLengthBytes, 0);
+
+                // Read the length of the photo
+                byte[] photoLengthBytes = new byte[4];
+                st.Client.Client.Receive(photoLengthBytes);
+                int photoLength = BitConverter.ToInt32(photoLengthBytes, 0);
+
+                // Read the name
+                byte[] nameBytes = new byte[nameLength];
+                st.Client.Client.Receive(nameBytes);
+                string clientName = Encoding.UTF8.GetString(nameBytes);
+
+                // Read the photo
+                byte[] clientPhoto = new byte[photoLength];
+                st.Client.Client.Receive(clientPhoto);
+
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    AddUpdateListBox(clientName, clientPhoto);
+                });
+
+
                 SendConfigurationToClient(data);
+
+
             }
             catch (Exception ex)
             {
@@ -642,7 +669,7 @@ namespace ChatDesign.View
         {
             try
             {
-                //Daten holen
+                // Daten holen
                 FormToConfig();
 
                 if (IsServerRunning)
@@ -900,8 +927,8 @@ namespace ChatDesign.View
         {
             try
             {
-                m_Config.IpAddressClient = "127.0.0.1";
-                m_Config.IPAddressServer = "127.0.0.1";
+                m_Config.IpAddressClient = "26.245.118.136";
+                m_Config.IPAddressServer = "26.114.170.202";
                 m_Config.PortClient = 8888;
                 m_Config.PortServer = 8888;
                 m_Config.SoundInputDeviceNameClient = Mic.SelectedIndex >= 0 ? Mic.SelectedItem.ToString() : "";
@@ -1198,6 +1225,9 @@ namespace ChatDesign.View
                         m_Client.ExceptionAppeared += new NF.TCPClient.DelegateException(OnClientExceptionAppeared);
                         m_Client.DataReceived += new NF.TCPClient.DelegateDataReceived(OnClientDataReceived);
                         m_Client.Connect();
+
+
+
                         MessageBox.Show("Connect Good");
                     }
                 }
@@ -1468,8 +1498,8 @@ namespace ChatDesign.View
             }
 
             //Attribute
-            public String IpAddressClient = "";
-            public String IPAddressServer = "";
+            public String IpAddressClient = "26.245.118.136";
+            public String IPAddressServer = "26.114.170.202";
             public int PortClient = 0;
             public int PortServer = 0;
             public String SoundInputDeviceNameClient = "";

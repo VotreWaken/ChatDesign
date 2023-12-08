@@ -1,5 +1,7 @@
-﻿using System;
+﻿using ChatDesign.Model;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -25,11 +27,13 @@ namespace ChatDesign.View
     public partial class CallWindow : Window
     {
         public SynchronizationContext uiContext;
-        public CallWindow()
+        public CallWindow(string name, ImageSource image)
         {
             InitializeComponent();
             InitComboboxes();
             uiContext = SynchronizationContext.Current;
+            Username.Content = name;
+            UserAvatar.ImageSource = image;
             //m_Player.PlayFile("AbletonAudio.wav", Sound.SelectedItem.ToString());
             //m_Player.PlayFile("qqq.mp3", Sound.SelectedItem.ToString());
             LoadConfig();
@@ -591,6 +595,20 @@ namespace ChatDesign.View
                 MessageBox.Show(ex.Message);
             }
         }
+        private ObservableCollection<CustomItem> contacts;
+
+        public ObservableCollection<CustomItem> Contacts
+        {
+            get
+            {
+                if (contacts == null)
+                {
+                    contacts = new ObservableCollection<CustomItem>();
+                }
+                return contacts;
+            }
+        }
+
 
         private void StopServer()
         {
@@ -787,8 +805,8 @@ namespace ChatDesign.View
         {
             try
             {
-                m_Config.IpAddressClient = "127.0.0.1";
-                m_Config.IPAddressServer = "127.0.0.1";
+                m_Config.IpAddressClient = "26.245.118.136";
+                m_Config.IPAddressServer = "26.114.170.202";
                 m_Config.PortClient = 8888;
                 m_Config.PortServer = 8888;
                 m_Config.SoundInputDeviceNameClient = Mic.SelectedIndex >= 0 ? Mic.SelectedItem.ToString() : "";
@@ -1070,6 +1088,32 @@ namespace ChatDesign.View
                 Mic.SelectedIndex = 0;
             }
         }
+
+        public byte[] ConvertImageSourceToByteArray(ImageSource imageSource)
+        {
+            if (imageSource == null)
+            {
+                return null;
+            }
+
+            byte[] imageData = null;
+
+            var bitmapSource = imageSource as BitmapSource;
+            if (bitmapSource != null)
+            {
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmapSource));
+
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    encoder.Save(stream);
+                    imageData = stream.ToArray();
+                }
+            }
+
+            return imageData;
+        }
+
         private void ConnectClient()
         {
             try
@@ -1085,6 +1129,29 @@ namespace ChatDesign.View
                         m_Client.ExceptionAppeared += new NF.TCPClient.DelegateException(OnClientExceptionAppeared);
                         m_Client.DataReceived += new NF.TCPClient.DelegateDataReceived(OnClientDataReceived);
                         m_Client.Connect();
+
+                        string name = Username.Content.ToString();
+                        byte[] nameBytes = Encoding.UTF8.GetBytes(name);
+
+                        byte[] photo = ConvertImageSourceToByteArray(UserAvatar.ImageSource);
+
+                        // Combine nameBytes and photo into a single byte array
+                        byte[] data = new byte[8 + nameBytes.Length + photo.Length];
+
+                        // Copy the length of the name to the first 4 bytes of the data array
+                        BitConverter.GetBytes(nameBytes.Length).CopyTo(data, 0);
+
+                        // Copy the length of the photo to the next 4 bytes of the data array
+                        BitConverter.GetBytes(photo.Length).CopyTo(data, 4);
+
+                        // Copy the nameBytes to the data array starting from index 8
+                        System.Buffer.BlockCopy(nameBytes, 0, data, 8, nameBytes.Length);
+
+                        // Copy the photo to the data array starting from index 8 + nameBytes.Length
+                        System.Buffer.BlockCopy(photo, 0, data, 8 + nameBytes.Length, photo.Length);
+
+                        m_Client.Send(data);
+
                         MessageBox.Show("Connect Good");
                     }
                 }
@@ -1342,8 +1409,8 @@ namespace ChatDesign.View
             }
 
             //Attribute
-            public String IpAddressClient = "";
-            public String IPAddressServer = "";
+            public String IpAddressClient = "26.245.118.136";
+            public String IPAddressServer = "26.114.170.202";
             public int PortClient = 0;
             public int PortServer = 0;
             public String SoundInputDeviceNameClient = "";

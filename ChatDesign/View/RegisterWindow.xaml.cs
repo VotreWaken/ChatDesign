@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -75,8 +76,8 @@ namespace ChatDesign.View
 
             // Store User
             DbOperations.StoreUserUsingSqlParameter(UserName.Text, UserPassword.Text, DbOperations.GetImageId(FileName.Text.Substring(FileName.Text.LastIndexOf('\\') + 1)), false, 0, 0);
-
-
+            
+            
             // Login New Register User 
             MainViewModel mainViewModel = new MainViewModel(UserName.Text);
 

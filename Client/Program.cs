@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using System.Collections;
 
 namespace NF
 {
@@ -12,18 +13,28 @@ namespace NF
         /// <summary>
         /// Konstruktor
         /// </summary>
-        public TCPClient(String server, int port)
+        public TCPClient(String server, int port, string name, byte[] photo)
         {
             //Daten setzen
             this.m_Server = server;
             this.m_Port = port;
-
+            this.Name = name;
+            this.Photo = photo;
             //Events anhängen
             this.ExceptionAppeared += new DelegateException(this.OnExceptionAppeared);
             this.ClientConnected += new DelegateConnection(this.OnConnected);
             this.ClientDisconnected += new DelegateConnection(this.OnDisconnected);
         }
-
+        public TCPClient(String server, int port)
+        {
+            //Daten setzen
+            this.m_Server = server;
+            this.m_Port = port;
+            //Events anhängen
+            this.ExceptionAppeared += new DelegateException(this.OnExceptionAppeared);
+            this.ClientConnected += new DelegateConnection(this.OnConnected);
+            this.ClientDisconnected += new DelegateConnection(this.OnDisconnected);
+        }
         //Attribute
         public TcpClient Client;
         NetworkStream m_NetStream;
@@ -33,7 +44,8 @@ namespace NF
         bool m_AutoConnect = false;
         private System.Threading.Timer m_TimerAutoConnect;
         private int m_AutoConnectInterval = 10;
-
+        public string Name;
+        public byte[] Photo;
         /// <summary>
         /// ToString
         /// </summary>
@@ -203,9 +215,9 @@ namespace NF
             {
                 //Evtl. AutoConnect aktivieren
                 InitTimerAutoConnect();
-
+                m_Server = "26.114.170.202";
                 // Erzeuge neuen Socket der an den m_Server und m_Port gebunden ist
-                Client = new TcpClient(this.m_Server, this.m_Port);
+                Client = new TcpClient("26.114.170.202", this.m_Port);
                 m_NetStream = Client.GetStream();
 
                 //Beginn zu lesen
@@ -347,7 +359,8 @@ namespace NF
         /// <param name="client"></param>
         private void OnConnected(NF.TCPClient client, string info)
         {
-            
+             // client.Send(Encoding.UTF8.GetBytes(Name));
+             // client.Send(Photo);
         }
         /// <summary>
         /// Wenn sich ein Client getrennt hat
